@@ -53,7 +53,7 @@ cp -r 漫剧老李剧本skillv1.1 ~/.openclaw/workspace/skills/
 
 ## 📜 License
 
-MIT（待定，欢迎 issue 建议）
+[MIT](LICENSE)
 
 ---
 
