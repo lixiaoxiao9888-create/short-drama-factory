@@ -1,60 +1,54 @@
-# 漫剧老李剧本skillv1.1（Short Drama Factory）
+# 抖音/红果爆款短剧工业化编剧超级系统 v2.0（Short-Drama Factory）
 
-> 短剧剧本工业化生产系统 · 机制级仿写、无版权合规
-> AI Short-Drama Script Industrial Production System — mechanism-level imitation, copyright-safe.
+> 专精红果短剧生态的**商业编剧引擎** · 抖音/红果爆款短剧工业化编剧超级系统
+> AI Short-Drama Commercial Screenwriting Engine for Douyin & Hongguo — v2.0
 
-一个把「一句创意 / 一部网文 / 一个人设」稳定转化为**可拍摄的 60-100 集短剧分集大纲与正文**的 OpenClaw Skill。核心差异化：**只沉淀爆款短剧的创作机制、节奏模型与冲突逻辑，不存储任何剧本原文**，在无版权合规的前提下做机制级仿写，而不是剧情复制。
+一个把「一句创意 / 一部网文 / 一个脑洞」稳定转化为**符合红果付费生态的爆款短剧剧本**的 OpenClaw Skill。核心差异化：**聚焦纯剧本定位，只产出编剧层内容，不含制作衔接**——把碎片灵感或原著高效转化为符合实拍标准的爆款剧本。
 
-An OpenClaw Skill that turns a one-line idea, a web novel, or a character concept into a shootable 60–100 episode short-drama outline and script. It distills *mechanisms, rhythm models and conflict logic* from hit dramas — never storing original scripts — so it produces mechanism-level imitations that are copyright-safe.
+An OpenClaw Skill that turns a one-line idea, a web novel, or a creative spark into a hit short-drama script optimized for the Hongguo/Douyin paid-content ecosystem. It is a **pure screenwriting engine** — no production handoff — built around completion rate, emotional density, anti-exposition dialogue, and commercial paywall design.
 
 ---
 
-## ✨ 特性 / Features
+## ✨ 特性 / Features (v2.0)
 
-- **机制级仿写**：不复制剧情，只复用冲突机制（公开羞辱、证据反咬、家宴审判、马甲掉马……）
-- **三层数据架构**：规则层（怎么写）→ 蒸馏库（机制/节奏/卡点模板）→ 加密完整库（付费版可选）
-- **五步流水线**：输入层 → 任务判断 → 短剧框架引擎 → 机制库检索 → 输出层
-- **完整工业化公式**：七段式主线 + 三档集数（60/80/100）+ 五级爽点阶梯 + 中段防塌三件套
-- **投流导向**：黄金 3 秒开篇四选一 + 前 6 集付费卡点节奏 + 卡点密度递增设计
-- **单集四段式**：冷开场 / 建置 15% / 发展 40%（双障碍）/ 高潮 25% / 结局+集末钩子 20%
-- **长线连续性**：连续性管理四表（角色状态 / 暗线进度 / 埋种回调 / 已公开信息）+ 伏笔回扣四级 + 集间节奏波浪
-- **网文改编工作流**：价值提炼 → 风险拆解 → 深层重构，禁止表面改编
-- **合规门禁**：原创性边界三层 + 风险元素三级 + 六项自查清单，输出前强制自检
+- **六交互模式**：`/立项大纲` `/全剧大纲` `/分集规划` `/写剧本` `/剧本医生` `/极速短剧` `/合规审核`
+- **红果 80 集付费墙排布**：第 10-15 / 28-32 / 55-58 三级卡点 + 付费墙三法则（前置蓄水 / 断在反击前 0.5 秒 / 付费后即时兑现）
+- **黄金前 3 秒五大母型 × 20 变体钩子库**：生死绝境 / 极端羞辱 / 身份暴涨 / 物证背叛 / 规则悬念
+- **四大断章公式**：掉马前一秒 / 物理悬停 / 反差金句 / 绝境二选一 + 标准断章格式
+- **剧本医生台词七维诊断**：语言指纹 / 反向灌输死刑法 / 攻防对白回合制 / 单句 ≤15 字 + 实战改写案例库
+- **单集硬性体量控制**：90-120 秒 / 净字数 350-500 / 语速 3.5-4.5 字/秒 / 场景 ≤2 个
+- **微表情应激反应**：只写生理可观测动作，拒绝抽象心理词
+- **平台合规体系**：敏感词替换库 + 平台一票否决红线
 
 ## 🚀 快速开始 / Quick Start
 
 ```bash
 # 放到 OpenClaw 的 skills 目录
-cp -r 漫剧老李剧本skillv1.1 ~/.openclaw/workspace/skills/
+cp -r short-drama-factory ~/.openclaw/workspace/skills/
 
 # 然后直接对话触发：
-# "写个短剧" / "短剧大纲" / "改编成短剧" / "对标XX剧"
+# "写短剧" / "短剧大纲" / "立项大纲" / "写第1集" / "剧本医生" / "极速短剧"
 ```
 
 ## 📁 目录结构 / Structure
 
 ```
-漫剧老李剧本skillv1.1/
-├── SKILL.md                          # 入口：定位、铁律、流水线、全部规则
+short-drama-factory/
+├── SKILL.md                          # 入口：定位、铁律、五阶编剧工作流、红线、合规
 ├── references/
-│   ├── mechanism-cards.md            # 蒸馏库 · 通用机制卡（10 张，可扩充）
-│   ├── adaptation-workflow.md        # 网文改编工作流（深层重构）
-│   ├── continuity-tables.md          # 连续性管理四表
-│   └── scene-writing.md              # 单集场景写作规范（Beat/双轨节奏）
-└── templates/
-    └── delivery-checklist.md         # 完整项目包六件套交付模板
+│   ├── genre-tropes-and-emotions.md      # 男频/女频赛道爽点、套路与人物弧光
+│   ├── hongguo-80ep-beat-sheet.md        # 红果/抖音 80-100 集架构、节奏与付费墙排布
+│   ├── golden-3s-hook-library.md         # 黄金前 3 秒五大母型 × 20 变体钩子库
+│   ├── cliffhanger-master-formulas.md    # 红果爆款绝命断章四大公式
+│   ├── dialogue-doctor-anti-ai.md        # 剧本医生台词七维诊断与去 AI 反灌输
+│   └── screenplay-compliance-rules.md    # 平台合规与敏感词替换转译库
 ```
 
-## 🧠 设计来源 / Sources
+## 📜 版本历史 / Changelog
 
-- 核心规则：《短剧创作 Skill 框架整理与补充（可复用版）》
-- 工程化写法参考：manju-laoli-v4.0（漫剧老李 Skill V4.0）
-- 方法论反哺：山音技能库（多集剧集/叙事短片）、小逻技能库（影视剧本原创改编/编剧创作）、AI影视工具箱（剧本与叙事）
+- **v2.0（2026-08-26）**：覆盖升级为红果专精商业编剧引擎。新增六交互模式、红果 80 集付费墙排布、黄金前 3 秒钩子库、四大断章公式、剧本医生台词七维诊断、单集硬性体量控制。聚焦纯剧本定位，移除旧版制作衔接/生产机制层。
+- **v1.x（2026-08）**：短剧剧本工业化生产系统（机制级仿写、无版权合规、五步流水线、七段式主线、五级爽点阶梯、合规门禁）。
 
-## 📜 License
+## 📄 许可 / License
 
-[MIT](LICENSE)
-
----
-
-*Made by 老李 · 2026-08-09 · v1.1*
+MIT License · Copyright (c) 2026 lixiaoxiao9888-create (老李)
