@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="300" viewBox="0 0 1280 300" role="img" aria-label="Short-Drama Factory v3.0">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0d1017"/>
+      <stop offset="0.55" stop-color="#151a25"/>
+      <stop offset="1" stop-color="#241820"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ffe08a"/>
+      <stop offset="1" stop-color="#f0a92e"/>
+    </linearGradient>
+    <linearGradient id="crimson" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ff7a7a"/>
+      <stop offset="1" stop-color="#d6336c"/>
+    </linearGradient>
+    <linearGradient id="bar" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffe08a"/>
+      <stop offset="1" stop-color="#d6336c"/>
+    </linearGradient>
+    <pattern id="perf" width="34" height="300" patternUnits="userSpaceOnUse">
+      <rect x="9" y="10" width="16" height="15" rx="4" fill="#242b3a"/>
+      <rect x="9" y="275" width="16" height="15" rx="4" fill="#242b3a"/>
+    </pattern>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="7" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1280" height="300" fill="url(#bg)"/>
+  <rect width="1280" height="300" fill="url(#perf)"/>
+
+  <rect x="58" y="66" width="6" height="168" rx="3" fill="url(#bar)"/>
+
+  <text x="96" y="128" font-family="Segoe UI, Arial, Helvetica, sans-serif" font-size="58" font-weight="700" fill="#ffffff" letter-spacing="1">SHORT-DRAMA FACTORY</text>
+  <text x="98" y="172" font-family="Microsoft YaHei, PingFang SC, Segoe UI, sans-serif" font-size="27" font-weight="700" fill="url(#gold)">短剧工业化编剧引擎 · v3.0</text>
+  <text x="98" y="212" font-family="Microsoft YaHei, PingFang SC, Segoe UI, sans-serif" font-size="19" fill="#9aa4b2">一句创意 / 一部网文 / 一个脑洞  →  60–100 集红果爆款剧本</text>
+  <g filter="url(#glow)">
+    <rect x="96" y="234" width="286" height="26" rx="13" fill="none" stroke="url(#crimson)" stroke-width="1.4"/>
+    <text x="112" y="252" font-family="Microsoft YaHei, PingFang SC, Segoe UI, sans-serif" font-size="15" fill="#ffb0c4">情绪流往返法 · 跨集台账 · 机检兜底</text>
+  </g>
+
+  <g transform="translate(1030,88)">
+    <rect x="0" y="30" width="132" height="92" rx="10" fill="#1c2230" stroke="#39415a" stroke-width="1.5"/>
+    <rect x="0" y="0" width="132" height="30" rx="8" fill="url(#gold)"/>
+    <g fill="#20242e">
+      <path d="M14 0 L30 0 L20 30 L4 30 Z"/>
+      <path d="M46 0 L62 0 L52 30 L36 30 Z"/>
+      <path d="M78 0 L94 0 L84 30 L68 30 Z"/>
+      <path d="M110 0 L126 0 L116 30 L100 30 Z"/>
+    </g>
+    <path d="M50 54 L50 98 L92 76 Z" fill="url(#crimson)"/>
+  </g>
+</svg>
