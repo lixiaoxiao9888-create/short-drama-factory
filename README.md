@@ -1,54 +1,38 @@
-# 抖音/红果爆款短剧工业化编剧超级系统 v2.0（Short-Drama Factory）
+# Short-Drama Factory v3.0 · 抖音/红果爆款短剧工业化编剧超级系统
 
-> 专精红果短剧生态的**商业编剧引擎** · 抖音/红果爆款短剧工业化编剧超级系统
-> AI Short-Drama Commercial Screenwriting Engine for Douyin & Hongguo — v2.0
+纯剧本引擎：把一句创意 / 一部网文 / 一个脑洞，稳定转化为符合红果付费生态的爆款短剧剧本。**只产剧本层，不含分镜/资产/视频制作衔接。**
 
-一个把「一句创意 / 一部网文 / 一个脑洞」稳定转化为**符合红果付费生态的爆款短剧剧本**的 OpenClaw Skill。核心差异化：**聚焦纯剧本定位，只产出编剧层内容，不含制作衔接**——把碎片灵感或原著高效转化为符合实拍标准的爆款剧本。
+## v3.0 相对 v2.0 的升级
 
-An OpenClaw Skill that turns a one-line idea, a web novel, or a creative spark into a hit short-drama script optimized for the Hongguo/Douyin paid-content ecosystem. It is a **pure screenwriting engine** — no production handoff — built around completion rate, emotional density, anti-exposition dialogue, and commercial paywall design.
+1. **情绪流单一矛盾往返法**（`references/emotion-flow-roundtrip.md`）：立项先判流派（情绪流⇄剧情流）；核心执念钉死、六档证据阶梯×六档反驳成本阶梯、几集一回合、中点攻守转换对位第一付费墙；含下沉题材批量生成器。
+2. **跨集连续性台账**（`references/continuity-ledger.md` + `templates/ledger.md` + `/连写 N-M` 模式）：伏笔/人物/道具/规则四账，无台账不开写，多集连写不穿帮。
+3. **网文改编流水线**（`references/webnovel-adaptation.md`）：抽取→砍并→章集映射→回合化→入系统，兑现"网文→剧本"。
+4. **人物圣经**（`references/character-bible.md`）：欲望/秘密/弧光/语言指纹四件套 + 功能位配额，先于大纲建档。
+5. **机制级仿写**（`references/mechanism-imitation.md`）：结构可仿、表达不可抄的三层拆解与换皮规程。
+6. **结构三档化**（`references/hongguo-beat-sheet.md`）：60/80/100 集变体、付费墙换算、剧情流变体、漫剧适配位；题材扩至 12+ 赛道（`genre-map.md`）。
+7. **红线机器化**：`scripts/validate_episode.py`（净字数 350~500 / 单句 ≤25 / 场景 ≤2 / 前3秒冲突 / 断章存在 / 复读检测 / 合规红线）与 `scripts/validate_series.py`（伏笔超期 / 死人开口 / 断章缺失扫描 / 付费墙落位 / 四账齐全），均含 self-test。
 
----
+## 七交互模式
 
-## ✨ 特性 / Features (v2.0)
+`/立项大纲` `/全剧大纲` `/分集规划` `/写剧本 第N集` `/剧本医生` `/极速短剧` `/合规审核` + v3.0 新增 **`/连写 N-M`**（带台账批量生产）。
 
-- **六交互模式**：`/立项大纲` `/全剧大纲` `/分集规划` `/写剧本` `/剧本医生` `/极速短剧` `/合规审核`
-- **红果 80 集付费墙排布**：第 10-15 / 28-32 / 55-58 三级卡点 + 付费墙三法则（前置蓄水 / 断在反击前 0.5 秒 / 付费后即时兑现）
-- **黄金前 3 秒五大母型 × 20 变体钩子库**：生死绝境 / 极端羞辱 / 身份暴涨 / 物证背叛 / 规则悬念
-- **四大断章公式**：掉马前一秒 / 物理悬停 / 反差金句 / 绝境二选一 + 标准断章格式
-- **剧本医生台词七维诊断**：语言指纹 / 反向灌输死刑法 / 攻防对白回合制 / 单句 ≤15 字 + 实战改写案例库
-- **单集硬性体量控制**：90-120 秒 / 净字数 350-500 / 语速 3.5-4.5 字/秒 / 场景 ≤2 个
-- **微表情应激反应**：只写生理可观测动作，拒绝抽象心理词
-- **平台合规体系**：敏感词替换库 + 平台一票否决红线
-
-## 🚀 快速开始 / Quick Start
+## 快速开始
 
 ```bash
-# 放到 OpenClaw 的 skills 目录
-cp -r short-drama-factory ~/.openclaw/workspace/skills/
-
-# 然后直接对话触发：
-# "写短剧" / "短剧大纲" / "立项大纲" / "写第1集" / "剧本医生" / "极速短剧"
+# 安装到技能目录后直接对话："写短剧" "立项：赘婿战神" "/连写 1-5"
+python3 scripts/validate_episode.py --self-test
+python3 scripts/validate_series.py --self-test
 ```
 
-## 📁 目录结构 / Structure
+## 结构
 
-```
+```text
 short-drama-factory/
-├── SKILL.md                          # 入口：定位、铁律、五阶编剧工作流、红线、合规
-├── references/
-│   ├── genre-tropes-and-emotions.md      # 男频/女频赛道爽点、套路与人物弧光
-│   ├── hongguo-80ep-beat-sheet.md        # 红果/抖音 80-100 集架构、节奏与付费墙排布
-│   ├── golden-3s-hook-library.md         # 黄金前 3 秒五大母型 × 20 变体钩子库
-│   ├── cliffhanger-master-formulas.md    # 红果爆款绝命断章四大公式
-│   ├── dialogue-doctor-anti-ai.md        # 剧本医生台词七维诊断与去 AI 反灌输
-│   └── screenplay-compliance-rules.md    # 平台合规与敏感词替换转译库
+├── SKILL.md                    # 入口：流派判定门+七模式+8红线+执行顺序
+├── references/                 # 11 个权威库（往返法/台账/改编/圣经/仿写/题材/结构/钩子/断章/台词/合规）
+├── templates/                  # 台账空表 + 单集排版
+├── scripts/                    # 单集机检 + 全剧台账机检
+└── examples/ep01-longwang-demo.md
 ```
 
-## 📜 版本历史 / Changelog
-
-- **v2.0（2026-08-26）**：覆盖升级为红果专精商业编剧引擎。新增六交互模式、红果 80 集付费墙排布、黄金前 3 秒钩子库、四大断章公式、剧本医生台词七维诊断、单集硬性体量控制。聚焦纯剧本定位，移除旧版制作衔接/生产机制层。
-- **v1.x（2026-08）**：短剧剧本工业化生产系统（机制级仿写、无版权合规、五步流水线、七段式主线、五级爽点阶梯、合规门禁）。
-
-## 📄 许可 / License
-
-MIT License · Copyright (c) 2026 lixiaoxiao9888-create (老李)
+MIT · 基于 v2.0（GitHub lixiaoxiao9888-create/short-drama-factory）升级。
