@@ -10,7 +10,7 @@
     伏笔账 / 人物账 / 道具账 / 世界观规则账
 
 检查项:
-    S1  伏笔"拟收"超期: 状态仍为 埋/养 且 当前集>拟收+3      WARN
+    S1  伏笔"拟收"超期: 状态含 埋/养/未收 且 当前集>拟收+3      WARN
     S2  伏笔废置: 状态"废"但正文未给废弃说明列               WARN
     S3  死人开口: 人物账状态含 死/失踪 但剧本目录中其后集数该角色有对白行  FAIL
     S4  人物无档案: 剧本目录出现【角色】名册外人名            WARN(需--script-dir)
@@ -56,14 +56,16 @@ def validate_ledger(text, total_eps=80, scripts=None):
     for r in fb:
         if len(r) < 5:
             continue
-        plan, state = r[3], r[4]
+        plan, state = r[3], r[4].strip()
         try:
             pn = int(plan)
         except ValueError:
             warns.append(f"S1 伏笔「{r[1][:12]}」拟收集数非数字: {plan}"); continue
-        if state in ("埋", "养") and cur > pn + 3:
+        # 状态宽松匹配: 埋/养/未收 归为待收; "收"开头视为已收
+        is_open = ("埋" in state or "养" in state or "未收" in state) and not state.startswith("收")
+        if is_open and cur > pn + 3:
             warns.append(f"S1 伏笔「{r[1][:12]}」超期未收(拟收{pn}集,现{cur}集,状态{state})")
-        if state == "废" and (len(r) < 6 or not r[5]):
+        if state.startswith("废") and (len(r) < 6 or not r[5]):
             warns.append(f"S2 伏笔「{r[1][:12]}」标废但未写原因")
 
     # S3 死人开口
@@ -88,7 +90,8 @@ def validate_ledger(text, total_eps=80, scripts=None):
         for ep in sorted(scripts):
             for m2 in re.finditer(r"^([\u4e00-\u9fa5A-Za-z0-9]{1,8})(?:（[^）]*）|\([^)]*\))?\s*[:：]", scripts[ep], re.M):
                 nm = m2.group(1)
-                if nm in ("第", "场景", "人物", "本集", "所属", "黄金", "情绪", "备注", "接上"):
+                if nm in ("第", "场景", "人物", "本集", "所属", "黄金", "情绪", "备注", "接上",
+                          "声音", "旁白", "画外音", "内心独白", "镜头", "字幕", "提示", "音效"):
                     continue
                 if nm not in roster and not any(nm in x or x in nm for x in roster):
                     warns.append(f"S4 第{ep}集台词角色「{nm}」不在人物账名册")
@@ -174,6 +177,18 @@ def self_test():
     f3, _, _ = validate_ledger("空台账", 80)
     if len([x for x in f3 if x.startswith("S7")]) < 4:
         print("FAIL self-test: 空台账应报 4 条 S7:", f3); ok = 0
+
+    # 回归: S1 状态宽松(已埋/未收 也算待收) + S4 噪音名过滤
+    led2 = LEDGER_GOOD.replace("| FB-02 | 神秘来电 | 12 | 31 | 养 | 反派内讧线 |",
+                               "| FB-02 | 神秘来电 | 12 | 8 | 已埋 | 反派内讧线 |")
+    f4, w4, _ = validate_ledger(led2, 80, scripts)
+    if not any("S1" in x and "FB" not in x or "神秘来电" in x for x in w4):
+        print("FAIL self-test: 状态'已埋'超期应报 S1:", w4); ok = 0
+    ep_noise = {5: "第【5】集\n[场景]：内景\n△ 拍桌。\n声音：轰鸣。\n林辰：谁？\n陈峰：我。\n【本集断章卡点】：黑屏（黑屏）\n"}
+    _, w5, _ = validate_ledger(LEDGER_GOOD, 80, ep_noise)
+    if any("「声音」" in x for x in w5):
+        print("FAIL self-test: '声音:' 旁白不应报 S4:", w5); ok = 0
+
     print("[+] self-test PASSED" if ok else "[-] self-test FAILED")
     return 0 if ok else 1
 

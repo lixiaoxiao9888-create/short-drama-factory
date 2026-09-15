@@ -7,30 +7,34 @@
     python3 validate_episode.py --self-test
 
 检查项 (FAIL=拦截必须修复, WARN=告警复核):
-    E1  剧本净字数(对白+动作行) 350~500            FAIL(超区间)
-    E2  单句台词 <=25 字                            WARN(逐句)
+    E1  剧本文本体量(对白+动作行+断章画面, 不含【】字段行/[场景][人物])  FAIL(超区间)
+          实拍: 350~500 字 | 漫剧/竖屏动画(含"漫剧"字样): 260~400 字
+    E2  单句台词(常规 12~18 字 / 爆发金句 8~12) 硬上限 25 字   WARN(逐句 >25)
     E3  场景数 <=2 ([场景] 标记计数)                FAIL(>2)
     E4  黄金前3秒: 首个动作/台词行含冲突信号词       FAIL(无)
     E5  开篇禁词(起床/拉窗帘/太阳升起/走在路上等)     WARN
     E6  断章卡点: 存在【本集断章卡点】且含黑屏/悬念   FAIL(缺)
     E7  情绪流变词: 存在【情绪流变】链条(-> 或 ➔)    WARN(缺)
     E8  复读检测: 主角台词与前集传入(--prev)重复     WARN(重复句)
-    E9  对白攻防回合: 存在 >=4 轮"人物:台词"对白     WARN(不足)
+    E9  对白行数: 存在 >=4 行"人物:台词"对白(攻防回合近似)  WARN(不足)
     E10 合规红线词(断肢/开膛/下蛊等一票否决直观描写)  FAIL
 退出码: 0=通过(可含WARN), 1=FAIL, 2=用法错误
 """
 import re
 import sys
 
-NET_MIN, NET_MAX = 350, 500
-SENT_MAX = 25
+# 剧本文本体量阈值(仅计正文: 对白行 + △动作行 + 断章卡点画面描述)
+NET_MIN, NET_MAX = 350, 500          # 实拍短剧
+NET_MIN_ANIME, NET_MAX_ANIME = 260, 400  # 漫剧/竖屏动画
+SENT_MAX = 25                        # 单句台词硬上限(常规 12~18)
 
 OPEN_BAN_WORDS = ["早晨起床", "起床", "拉窗帘", "太阳升起", "醒过来", "走在路上",
                   "整理衣服", "开车上班", "喝咖啡闲聊", "悠闲的清晨", "阳光明媚的早晨"]
 
-CONFLICT_SIGNALS = ["△", "！?", "！", "枪", "刀", "巴掌", "扔", "砸", "吼", "冷笑",
+# 注: 不含 "△" —— 动作行本身不等于冲突, 否则任何以动作开场的剧本恒过 E4
+CONFLICT_SIGNALS = ["！?", "！", "枪", "刀", "巴掌", "扔", "砸", "吼", "冷笑",
                     "逼", "跪", "撕", "拍在", "顶在", "推", "踹", "骂", "羞辱", "退婚",
-                    "病危", "签字", "死", "滚", "住手", "救"]
+                    "病危", "签字", "死", "滚", "住手", "救", "断裂", "炸", "烧", "血"]
 
 BREAK_WORDS = ["断章", "卡点", "黑屏", "悬念"]
 
@@ -48,7 +52,13 @@ def _is_dialogue(line):
 
 
 def net_chars(text):
-    """净字数: 对白+动作指示行(△/[场景]/[人物]行与对白), 去标记与空白标点"""
+    """剧本文本体量: 仅计
+        - 对白行台词
+        - △ 动作指示行内容
+        - 【本集断章卡点】画面描述
+    剔除: 【所属阶段】【黄金前3秒钩子】【情绪流变】【本集时长】等字段行,
+          以及 [场景]/[人物] 标记行(结构性元数据, 非剧本正文)
+    """
     total = 0
     for line in text.splitlines():
         s = line.strip()
@@ -57,13 +67,20 @@ def net_chars(text):
         d = _is_dialogue(s)
         if d is not None:
             body = d
-        elif s.startswith("△") or s.startswith("[") or s.startswith("【"):
-            body = re.sub(r"^[△\[\]【】人场景物本集情绪流白动作]{0,8}", "", s)
+        elif s.startswith("△"):
+            body = re.sub(r"^△\s*", "", s)
+        elif s.startswith("【本集断章卡点】"):
+            body = re.sub(r"^【本集断章卡点】\s*[:：]?\s*", "", s)
         else:
-            continue
+            continue  # 字段行【】/标记行[]/普通行 一律不计
         body = re.sub(r"[\s，。！？；：、…—\-·“”\"'‘’（）()《》!?.]", "", body)
         total += len(body)
     return total
+
+
+def is_anime(text):
+    """漫剧/竖屏动画项目: 文本含 '漫剧' 即按漫剧体量档判 E1"""
+    return "漫剧" in text
 
 
 def scene_count(text):
@@ -85,8 +102,10 @@ def first_content_lines(text, n=3):
 def validate(text, prev_texts=()):
     fails, warns = [], []
     nc = net_chars(text)
-    if not (NET_MIN <= nc <= NET_MAX):
-        fails.append(f"E1 剧本净字数 {nc} 不在 {NET_MIN}~{NET_MAX} 区间")
+    lo, hi = (NET_MIN_ANIME, NET_MAX_ANIME) if is_anime(text) else (NET_MIN, NET_MAX)
+    if not (lo <= nc <= hi):
+        kind = "漫剧" if is_anime(text) else "实拍"
+        fails.append(f"E1 剧本文本体量 {nc} 不在 {lo}~{hi} 区间（{kind}档）")
 
     for line in text.splitlines():
         d = _is_dialogue(line)
@@ -116,14 +135,14 @@ def validate(text, prev_texts=()):
         if seg and not any(w in seg.group(1) for w in ["黑屏", "悬念", "下滑", "解锁"]):
             warns.append("E6 断章卡点缺黑屏/下滑解锁落点词")
 
-    if not re.search(r"【情绪流变】.*(->|➔|→)", text):
+    if not re.search(r"【情绪流变】.*(->|➔|➔|→)", text):
         warns.append("E7 缺【情绪流变】链条(应标: 遭受刁难 ➔ … ➔ 绝命断章)")
 
     rounds = 0
     my_lines = [d for d in (_is_dialogue(l) for l in text.splitlines()) if d]
     rounds = len(my_lines)
     if rounds < 4:
-        warns.append(f"E9 对白回合仅 {rounds} 轮(<4)，攻防结构不足")
+        warns.append(f"E9 对白行仅 {rounds} 行(<4)，攻防结构不足")
 
     for prev in prev_texts:
         prev_set = set(re.sub(r"\s", "", p) for p in (_is_dialogue(l) for l in prev.splitlines()) if p)
@@ -143,7 +162,6 @@ GOOD = """第【1】集：【龙王令·开局羞辱】
 【黄金前3秒钩子】：极端羞辱
 【情绪流变】：当众受辱 ➔ 隐忍握拳 ➔ 亮令反杀 ➔ 绝命断章
 【本集时长】：105 秒
-
 [场景]：内景·顶级私人会所·夜
 [人物]：林辰（隐忍龙王）、陈峰（嚣张富二代）、苏清雪（未婚妻）
 
@@ -191,6 +209,30 @@ def self_test():
         print("FAIL self-test: BAD 应报 E10 红线词"); ok = 0
     if not any("E5" in x for x in w):
         print("FAIL self-test: BAD 应报 E5 开篇禁词"); ok = 0
+
+    # 回归1: 字段行不应灌入 E1 体量
+    hdr_only = "第【1】集\n【所属阶段】：第X幕・（第 1/80 集 ｜ 往返第 N 回合）\n【黄金前3秒钩子】：极端羞辱型（婚礼当众）\n【情绪流变】：受辱 ➔ 隐忍 ➔ 反杀 ➔ 绝命断章\n【本集时长】：108 秒\n[场景]：内景·会所·夜\n[人物]：林辰、陈峰\n"
+    if net_chars(hdr_only) != 0:
+        print("FAIL self-test: 纯字段/标记行应计 0 字，实得", net_chars(hdr_only)); ok = 0
+
+    # 回归2: 以 △ 开场的废镜头剧本，E4 必须拦截
+    boring = "第【1】集\n[场景]：内景·客厅·日\n[人物]：甲、乙\n△ 他慢慢走进客厅，端起茶杯喝了一口。\n△ 他看了看窗外。\n甲：今天天气不错。\n乙：是啊。\n甲：那先这样。\n乙：好。\n【本集断章卡点】：两人告别。（黑屏）\n"
+    f, w, _ = validate(boring)
+    if not any("E4" in x for x in f):
+        print("FAIL self-test: △ 开场的废镜头剧本应报 E4"); ok = 0
+
+    # 回归3: 漫剧档体量(260~400)应可用
+    anime = "第【1】集：漫剧\n【情绪流变】：受辱 ➔ 隐忍 ➔ 反杀 ➔ 绝命断章\n[场景]：内景·堂·日\n[人物]：甲、乙\n" + "".join(f"△ 具体的物理动作行编号{i}，可被镜头拍到的行为事件推进本集冲突。\n" for i in range(9)) + "甲：你确定要这么做？\n乙：我确定。\n甲：那就别怪我。\n乙：来吧。\n【本集断章卡点】：灯灭人散，只余一击。（黑屏：下滑解锁）\n"
+    f, w, _ = validate(anime)
+    if any("E1" in x for x in f):
+        print("FAIL self-test: 漫剧档不应报 E1 区冲突:", [x for x in f if 'E1' in x]); ok = 0
+
+    # 回归4: 台词硬上限 25
+    longline = "第【1】集\n[场景]：内景\n[人物]：甲\n△ 拍桌。\n甲：这是超过二十五个字的长复合句用来触发告警检查是否生效一二三四五六七八。\n【本集断章卡点】：黑屏（黑屏）\n"
+    f, w, _ = validate(longline)
+    if not any("E2" in x for x in w):
+        print("FAIL self-test: >25 字台词应报 E2"); ok = 0
+
     print("[+] self-test PASSED" if ok else "[-] self-test FAILED")
     return 0 if ok else 1
 
