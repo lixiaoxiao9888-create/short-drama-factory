@@ -87,12 +87,15 @@ def validate_ledger(text, total_eps=80, scripts=None):
     # S4 名册外角色
     roster = {r[0].strip() for r in (_rows(text, "人物") or []) if len(r) > 0}
     if scripts and roster:
+        NOISE = {"第", "场景", "人物", "本集", "所属", "黄金", "情绪", "备注", "接上",
+                 "声音", "旁白", "画外音", "内心独白", "镜头", "字幕", "提示", "音效"}
         for ep in sorted(scripts):
+            seen = set()
             for m2 in re.finditer(r"^([\u4e00-\u9fa5A-Za-z0-9]{1,8})(?:（[^）]*）|\([^)]*\))?\s*[:：]", scripts[ep], re.M):
                 nm = m2.group(1)
-                if nm in ("第", "场景", "人物", "本集", "所属", "黄金", "情绪", "备注", "接上",
-                          "声音", "旁白", "画外音", "内心独白", "镜头", "字幕", "提示", "音效"):
+                if nm in NOISE or nm in seen:
                     continue
+                seen.add(nm)
                 if nm not in roster and not any(nm in x or x in nm for x in roster):
                     warns.append(f"S4 第{ep}集台词角色「{nm}」不在人物账名册")
 
@@ -189,6 +192,13 @@ def self_test():
     if any("「声音」" in x for x in w5):
         print("FAIL self-test: '声音:' 旁白不应报 S4:", w5); ok = 0
 
+    # 回归: S4 同集同角色多行台词只报一次(去重)
+    ep_dup = {9: "第【9】集\n[场景]：内景\n△ 对峙。\n陌生人：你是谁？\n陌生人：说话！\n陌生人：再不说我动手了。\n林辰：别急。\n【本集断章卡点】：黑屏（黑屏）\n"}
+    _, w6, _ = validate_ledger(LEDGER_GOOD, 80, ep_dup)
+    dup_cnt = sum(1 for x in w6 if "「陌生人」" in x)
+    if dup_cnt != 1:
+        print(f"FAIL self-test: S4 同名角色应只报 1 次，实得 {dup_cnt}", w6); ok = 0
+
     print("[+] self-test PASSED" if ok else "[-] self-test FAILED")
     return 0 if ok else 1
 
@@ -199,18 +209,34 @@ def main():
         print(__doc__); return 2
     if args[0] == "--self-test":
         return self_test()
-    led = pathlib.Path(args[0]).read_text(encoding="utf-8")
+    try:
+        led = pathlib.Path(args[0]).read_text(encoding="utf-8")
+    except FileNotFoundError:
+        print(f"[-] 找不到台账文件: {args[0]}"); return 2
+    except UnicodeDecodeError:
+        print(f"[-] 台账不是 UTF-8 文本: {args[0]}"); return 2
     total = 80
     if "--episodes" in args:
-        total = int(args[args.index("--episodes") + 1])
+        try:
+            total = int(args[args.index("--episodes") + 1])
+        except (IndexError, ValueError):
+            print("[-] --episodes 需要一个整数"); return 2
     scripts = None
     if "--script-dir" in args:
-        d = pathlib.Path(args[args.index("--script-dir") + 1])
+        try:
+            d = pathlib.Path(args[args.index("--script-dir") + 1])
+        except IndexError:
+            print("[-] --script-dir 需要一个目录路径"); return 2
+        if not d.is_dir():
+            print(f"[-] 剧本目录不存在: {d}"); return 2
         scripts = {}
         for p in sorted(d.glob("*.md")):
             m = re.search(r"(\d+)", p.stem)
             if m:
-                scripts[int(m.group(1))] = p.read_text(encoding="utf-8")
+                try:
+                    scripts[int(m.group(1))] = p.read_text(encoding="utf-8")
+                except UnicodeDecodeError:
+                    print(f"[-] 跳过非 UTF-8 剧本: {p}")
     fails, warns, cur = validate_ledger(led, total, scripts)
     print(f"== {args[0]}  总集数={total} 当前集={cur} ==")
     for x in fails:

@@ -250,10 +250,22 @@ def main():
         for p in args[i + 1:]:
             if p.startswith("--"):
                 break
-            prevs.append(open(p, encoding="utf-8").read())
-    text = open(path, encoding="utf-8").read()
-    fails, warns, nc = validate(text, prevs)
-    print(f"== {path}  净字数≈{nc} ==")
+            prevs.append(p)
+    # 友好处理缺文件/编码错误（避免裸 traceback）
+    try:
+        text = open(path, encoding="utf-8").read()
+    except FileNotFoundError:
+        print(f"[-] 找不到剧本文件: {path}"); return 2
+    except UnicodeDecodeError:
+        print(f"[-] 文件不是 UTF-8 文本，无法读取: {path}"); return 2
+    for p in prevs:
+        try:
+            open(p, encoding="utf-8").read()
+        except (FileNotFoundError, UnicodeDecodeError):
+            print(f"[-] 找不到或无法读取前集文件: {p}"); return 2
+    prev_texts = [open(p, encoding="utf-8").read() for p in prevs]
+    fails, warns, nc = validate(text, prev_texts)
+    print(f"== {path}  正文体量≈{nc} ==")
     for x in fails:
         print("[-] FAIL:", x)
     for x in warns:

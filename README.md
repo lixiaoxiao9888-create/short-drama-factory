@@ -1,7 +1,7 @@
 <img src="assets/banner.svg" alt="Short-Drama Factory v3.1 · 抖音/红果爆款短剧工业化编剧超级系统" width="100%">
 
 <p align="center">
-<a href="#核心方法论情绪契约单元链"><img src="https://img.shields.io/badge/version-v3.1.1-gold?style=for-the-badge" alt="version"></a>
+<a href="#核心方法论情绪契约单元链"><img src="https://img.shields.io/badge/version-v3.1.2-gold?style=for-the-badge" alt="version"></a>
 <a href="#能力"><img src="https://img.shields.io/badge/%E7%BA%AF%E5%89%A7%E6%9C%AC%E5%BC%95%E6%93%8E-8%E4%B8%AA%E6%A8%A1%E5%BC%8F-ff69b4?style=for-the-badge" alt="modes"></a>
 <a href="#能力"><img src="https://img.shields.io/badge/%E7%BB%93%E6%9E%84-60%2F80%2F100%E9%9B%86-6f42c1?style=for-the-badge" alt="structure"></a>
 <a href="#能力"><img src="https://img.shields.io/badge/%E6%9C%BA%E6%A3%80-%E5%8F%8C%E8%84%9A%E6%9C%AC-2ea44f?style=for-the-badge" alt="validate"></a>
