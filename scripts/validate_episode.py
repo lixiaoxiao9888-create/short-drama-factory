@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""short-drama-factory v3.0 单集剧本机检
+"""short-drama-factory v3.1 单集剧本机检
 
 用法:
     python3 validate_episode.py <单集剧本.md>

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""short-drama-factory v3.0 全剧台账机检
+"""short-drama-factory v3.1 全剧台账机检
 
 用法:
     python3 validate_series.py <台账.md> [--episodes 80] [--script-dir 剧本目录]
