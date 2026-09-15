@@ -1,54 +1,91 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="300" viewBox="0 0 1280 300" role="img" aria-label="Short-Drama Factory v3.0">
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="320" viewBox="0 0 1280 320" role="img" aria-label="Short-Drama Factory v3.1">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#0d1017"/>
-      <stop offset="0.55" stop-color="#151a25"/>
-      <stop offset="1" stop-color="#241820"/>
+      <stop offset="0" stop-color="#0a0d14"/>
+      <stop offset="0.5" stop-color="#121826"/>
+      <stop offset="1" stop-color="#2a1420"/>
     </linearGradient>
+    <radialGradient id="glowA" cx="0.78" cy="0.3" r="0.6">
+      <stop offset="0" stop-color="#c8395f" stop-opacity="0.30"/>
+      <stop offset="1" stop-color="#c8395f" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowB" cx="0.12" cy="0.85" r="0.55">
+      <stop offset="0" stop-color="#f0a92e" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#f0a92e" stop-opacity="0"/>
+    </radialGradient>
     <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#ffe08a"/>
+      <stop offset="0" stop-color="#ffe6a0"/>
       <stop offset="1" stop-color="#f0a92e"/>
     </linearGradient>
     <linearGradient id="crimson" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#ff7a7a"/>
+      <stop offset="0" stop-color="#ff8aa6"/>
       <stop offset="1" stop-color="#d6336c"/>
     </linearGradient>
     <linearGradient id="bar" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ffe08a"/>
+      <stop offset="0" stop-color="#ffe6a0"/>
+      <stop offset="0.5" stop-color="#f0a92e"/>
       <stop offset="1" stop-color="#d6336c"/>
     </linearGradient>
-    <pattern id="perf" width="34" height="300" patternUnits="userSpaceOnUse">
-      <rect x="9" y="10" width="16" height="15" rx="4" fill="#242b3a"/>
-      <rect x="9" y="275" width="16" height="15" rx="4" fill="#242b3a"/>
-    </pattern>
+    <filter id="soft" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="16"/>
+    </filter>
     <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
-      <feGaussianBlur stdDeviation="7" result="b"/>
+      <feGaussianBlur stdDeviation="6" result="b"/>
       <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
   </defs>
 
-  <rect width="1280" height="300" fill="url(#bg)"/>
-  <rect width="1280" height="300" fill="url(#perf)"/>
+  <rect width="1280" height="320" fill="url(#bg)"/>
+  <rect width="1280" height="320" fill="url(#glowA)"/>
+  <rect width="1280" height="320" fill="url(#glowB)"/>
 
-  <rect x="58" y="66" width="6" height="168" rx="3" fill="url(#bar)"/>
+  <!-- 左侧竖条 -->
+  <rect x="64" y="74" width="7" height="172" rx="3.5" fill="url(#bar)"/>
 
-  <text x="96" y="128" font-family="Segoe UI, Arial, Helvetica, sans-serif" font-size="58" font-weight="700" fill="#ffffff" letter-spacing="1">SHORT-DRAMA FACTORY</text>
-  <text x="98" y="172" font-family="Microsoft YaHei, PingFang SC, Segoe UI, sans-serif" font-size="27" font-weight="700" fill="url(#gold)">短剧工业化编剧引擎 · v3.0</text>
-  <text x="98" y="212" font-family="Microsoft YaHei, PingFang SC, Segoe UI, sans-serif" font-size="19" fill="#9aa4b2">一句创意 / 一部网文 / 一个脑洞  →  60–100 集红果爆款剧本</text>
+  <!-- 主标题 -->
+  <text x="104" y="126" font-family="Segoe UI, Arial, Helvetica, sans-serif" font-size="60" font-weight="800" fill="#ffffff" letter-spacing="1.5">SHORT-DRAMA FACTORY</text>
+
+  <!-- 中文副标题（金色） -->
+  <text x="106" y="176" font-family="Microsoft YaHei, PingFang SC, Heiti SC, sans-serif" font-size="30" font-weight="700" fill="url(#gold)">短剧工业化编剧引擎 · <tspan fill="#ff8aa6">v3.1</tspan></text>
+
+  <!-- 核心卖点 -->
+  <text x="106" y="216" font-family="Microsoft YaHei, PingFang SC, Heiti SC, sans-serif" font-size="19" fill="#aab3c2">一句创意 / 一部网文 / 一个脑洞  →  60–100 集红果爆款剧本</text>
+
+  <!-- 能力胶囊 -->
   <g filter="url(#glow)">
-    <rect x="96" y="234" width="286" height="26" rx="13" fill="none" stroke="url(#crimson)" stroke-width="1.4"/>
-    <text x="112" y="252" font-family="Microsoft YaHei, PingFang SC, Segoe UI, sans-serif" font-size="15" fill="#ffb0c4">情绪流往返法 · 跨集台账 · 机检兜底</text>
+    <rect x="104" y="240" width="586" height="34" rx="17" fill="#141a26" stroke="url(#crimson)" stroke-width="1.4"/>
+    <circle cx="128" cy="257" r="4" fill="url(#gold)"/>
+    <text x="144" y="263" font-family="Microsoft YaHei, PingFang SC, Heiti SC, sans-serif" font-size="16" fill="#ffc4d5">情绪契约单元链 · 矛盾按单元跑 · 跨集台账 · 双机检</text>
   </g>
 
-  <g transform="translate(1030,88)">
-    <rect x="0" y="30" width="132" height="92" rx="10" fill="#1c2230" stroke="#39415a" stroke-width="1.5"/>
-    <rect x="0" y="0" width="132" height="30" rx="8" fill="url(#gold)"/>
-    <g fill="#20242e">
-      <path d="M14 0 L30 0 L20 30 L4 30 Z"/>
-      <path d="M46 0 L62 0 L52 30 L36 30 Z"/>
-      <path d="M78 0 L94 0 L84 30 L68 30 Z"/>
-      <path d="M110 0 L126 0 L116 30 L100 30 Z"/>
+  <!-- 右侧电影胶片 + 播放键装置 -->
+  <g transform="translate(1004,58)">
+    <rect x="0" y="0" width="212" height="204" rx="14" fill="#0f1420" stroke="#2c3346" stroke-width="1.5"/>
+    <!-- 上下齿孔 -->
+    <g fill="#232a3a">
+      <rect x="16" y="14" width="20" height="12" rx="3"/>
+      <rect x="48" y="14" width="20" height="12" rx="3"/>
+      <rect x="80" y="14" width="20" height="12" rx="3"/>
+      <rect x="112" y="14" width="20" height="12" rx="3"/>
+      <rect x="144" y="14" width="20" height="12" rx="3"/>
+      <rect x="176" y="14" width="20" height="12" rx="3"/>
+      <rect x="16" y="178" width="20" height="12" rx="3"/>
+      <rect x="48" y="178" width="20" height="12" rx="3"/>
+      <rect x="80" y="178" width="20" height="12" rx="3"/>
+      <rect x="112" y="178" width="20" height="12" rx="3"/>
+      <rect x="144" y="178" width="20" height="12" rx="3"/>
+      <rect x="176" y="178" width="20" height="12" rx="3"/>
     </g>
-    <path d="M50 54 L50 98 L92 76 Z" fill="url(#crimson)"/>
+    <!-- 画面区 -->
+    <rect x="26" y="38" width="160" height="128" rx="8" fill="#161d2b" stroke="#2c3346" stroke-width="1"/>
+    <!-- 播放三角 -->
+    <g filter="url(#glow)">
+      <path d="M92 84 L134 102 L92 120 Z" fill="url(#crimson)"/>
+    </g>
+    <!-- 情绪曲线（下沿） -->
+    <path d="M30 150 L60 132 L86 144 L112 108 L138 128 L166 100 L182 112" fill="none" stroke="url(#gold)" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
   </g>
+
+  <!-- 右下角署名 -->
+  <text x="1006" y="286" font-family="Microsoft YaHei, PingFang SC, Heiti SC, sans-serif" font-size="13" fill="#9aa6bd">情绪流 · 剧情流自动分流　|　红果付费生态</text>
 </svg>

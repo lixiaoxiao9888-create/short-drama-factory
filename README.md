@@ -1,3 +1,5 @@
+<img src="assets/banner.svg" alt="Short-Drama Factory v3.1 · 抖音/红果爆款短剧工业化编剧超级系统" width="100%">
+
 # Short-Drama Factory v3.1 · 抖音/红果爆款短剧工业化编剧超级系统
 
 > **一句创意进，一部带付费墙的爆款剧本出。**
