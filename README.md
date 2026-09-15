@@ -1,6 +1,15 @@
 <img src="assets/banner.svg" alt="Short-Drama Factory v3.1 · 抖音/红果爆款短剧工业化编剧超级系统" width="100%">
 
-# Short-Drama Factory v3.1 · 抖音/红果爆款短剧工业化编剧超级系统
+<p align="center">
+<a href="#核心方法论情绪契约单元链"><img src="https://img.shields.io/badge/version-v3.1.1-gold?style=for-the-badge" alt="version"></a>
+<a href="#能力"><img src="https://img.shields.io/badge/%E7%BA%AF%E5%89%A7%E6%9C%AC%E5%BC%95%E6%93%8E-8%E4%B8%AA%E6%A8%A1%E5%BC%8F-ff69b4?style=for-the-badge" alt="modes"></a>
+<a href="#能力"><img src="https://img.shields.io/badge/%E7%BB%93%E6%9E%84-60%2F80%2F100%E9%9B%86-6f42c1?style=for-the-badge" alt="structure"></a>
+<a href="#能力"><img src="https://img.shields.io/badge/%E6%9C%BA%E6%A3%80-%E5%8F%8C%E8%84%9A%E6%9C%AC-2ea44f?style=for-the-badge" alt="validate"></a>
+<a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue?style=for-the-badge" alt="license"></a>
+</p>
+
+<h1 align="center">Short-Drama Factory v3.1</h1>
+<p align="center"><b>抖音 / 红果 爆款短剧工业化编剧超级系统</b></p>
 
 > **一句创意进，一部带付费墙的爆款剧本出。**
 > 情绪契约贯穿全剧，矛盾按单元跑——单矛盾绝不烧过 30 集。
@@ -12,7 +21,7 @@
 
 全剧锚定的不是某一条矛盾，而是**情绪契约**——观众每集要续期的那口气。矛盾只是单元载具，按单元更换：
 
-- **单矛盾硬帽 20~30 集必须闭环**（60 集 = 2~3 单元 / 80 集 = 3 单元 / 100 集 = 3~4 单元）；
+- **单矛盾硬帽 20～30 集必须闭环**（60 集 = 2～3 单元 / 80 集 = 3 单元 / 100 集 = 3～4 单元）；
 - **三缝合一换矛盾**：旧单元残渣生新矛盾（火种埋钩）/ 对手换层不换欲 / 弧光随单元升级——换矛不断气；
 - **每单元一张往返回合表**：六档证据阶梯 × 六档反驳成本阶梯在单元内跑满，单元间靠情绪契约接力；
 - **付费墙挂单元接缝**：换矛盾点即天然强付费点；中点攻守转换对位第一付费墙。
@@ -25,7 +34,7 @@
 4. **人物圣经**（`references/character-bible.md`）：欲望/秘密/弧光/语言指纹四件套 + 功能位配额，先于大纲建档。
 5. **机制级仿写**（`references/mechanism-imitation.md`）：结构可仿、表达不可抄的三层拆解与换皮规程。
 6. **结构三档化**（`references/hongguo-beat-sheet.md`）：60/80/100 集变体、付费墙换算、剧情流变体、漫剧适配位；题材扩至 12+ 赛道（`genre-map.md`）。
-7. **红线机器化**（`scripts/`）：单集机检（正文体量 实拍350~500/漫剧260~400 / 单句硬上限≤25 / 场景 ≤2 / 前 3 秒冲突 / 断章存在 / 复读检测 / 合规红线）+ 全剧台账机检（伏笔超期 / 死人开口 / 断章缺失扫描 / 付费墙落位 / 四账齐全），均含 self-test。
+7. **红线机器化**（`scripts/`）：单集机检（正文体量 实拍350～500/漫剧260～400 / 单句硬上限≤25 / 场景 ≤2 / 前 3 秒冲突 / 断章存在 / 复读检测 / 合规红线）+ 全剧台账机检（伏笔超期 / 死人开口 / 断章缺失扫描 / 付费墙落位 / 四账齐全），均含 self-test。
 
 ## 交互模式（8 个）
 
