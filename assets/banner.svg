@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="320" viewBox="0 0 1280 320" role="img" aria-label="Short-Drama Factory v3.1">
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="320" viewBox="0 0 1280 320" role="img" aria-label="Short-Drama Factory v3.2">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#0a0d14"/>
@@ -46,16 +46,16 @@
   <text x="104" y="126" font-family="Segoe UI, Arial, Helvetica, sans-serif" font-size="60" font-weight="800" fill="#ffffff" letter-spacing="1.5">SHORT-DRAMA FACTORY</text>
 
   <!-- 中文副标题（金色） -->
-  <text x="106" y="176" font-family="Microsoft YaHei, PingFang SC, Heiti SC, sans-serif" font-size="30" font-weight="700" fill="url(#gold)">短剧工业化编剧引擎 · <tspan fill="#ff8aa6">v3.1</tspan></text>
+  <text x="106" y="176" font-family="Microsoft YaHei, PingFang SC, Heiti SC, sans-serif" font-size="30" font-weight="700" fill="url(#gold)">短剧工业化编剧引擎 · <tspan fill="#ff8aa6">v3.2</tspan></text>
 
   <!-- 核心卖点 -->
-  <text x="106" y="216" font-family="Microsoft YaHei, PingFang SC, Heiti SC, sans-serif" font-size="19" fill="#aab3c2">一句创意 / 一部网文 / 一个脑洞  →  60–100 集红果爆款剧本</text>
+  <text x="106" y="216" font-family="Microsoft YaHei, PingFang SC, Heiti SC, sans-serif" font-size="19" fill="#aab3c2">一句创意 / 一部网文 / 一个脑洞  →  标准 60–100 集 / 长档 30–50 集剧本</text>
 
   <!-- 能力胶囊 -->
   <g filter="url(#glow)">
     <rect x="104" y="240" width="586" height="34" rx="17" fill="#141a26" stroke="url(#crimson)" stroke-width="1.4"/>
     <circle cx="128" cy="257" r="4" fill="url(#gold)"/>
-    <text x="144" y="263" font-family="Microsoft YaHei, PingFang SC, Heiti SC, sans-serif" font-size="16" fill="#ffc4d5">情绪契约单元链 · 矛盾按单元跑 · 跨集台账 · 双机检</text>
+    <text x="144" y="263" font-family="Microsoft YaHei, PingFang SC, Heiti SC, sans-serif" font-size="16" fill="#ffc4d5">情绪契约单元链 · 长档3分钟双回合 · 跨集台账 · 分档机检</text>
   </g>
 
   <!-- 右侧电影胶片 + 播放键装置 -->

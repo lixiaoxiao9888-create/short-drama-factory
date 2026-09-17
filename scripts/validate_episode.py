@@ -1,14 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""short-drama-factory v3.1 单集剧本机检
+"""short-drama-factory v3.2 单集剧本机检（分档）
 
 用法:
-    python3 validate_episode.py <单集剧本.md>
+    python3 validate_episode.py <单集剧本.md> [--format auto|standard|long|manju] [--prev 前集.md ...]
     python3 validate_episode.py --self-test
+
+档位 profile (--format; 默认 auto = 按正文自检: 含"长档"→long, 含"漫剧"→manju, 否则 standard):
+    standard  标准档 90~120 秒   正文体量 实拍 350~500 / 漫剧 260~400   场景 <=2   对白行 >=4
+    long      长档   165~195 秒  正文体量 实拍 650~850 / 漫剧 520~680   场景 <=3   对白行 >=8   必设【本集中段小钩】
+    manju     漫剧档 60~90 秒    正文体量 260~400                       场景 <=2   对白行 >=4
 
 检查项 (FAIL=拦截必须修复, WARN=告警复核):
     E1  剧本文本体量(对白+动作行+断章画面, 不含【】字段行/[场景][人物])  FAIL(超区间)
-          实拍: 350~500 字 | 漫剧/竖屏动画(含"漫剧"字样): 260~400 字
+          标准档 实拍 350~500 / 漫剧 260~400 ；长档 实拍 650~850 / 漫剧 520~680
     E2  单句台词(常规 12~18 字 / 爆发金句 8~12) 硬上限 25 字   WARN(逐句 >25)
     E3  场景数 <=2 ([场景] 标记计数)                FAIL(>2)
     E4  黄金前3秒: 首个动作/台词行含冲突信号词       FAIL(无)
@@ -16,8 +21,9 @@
     E6  断章卡点: 存在【本集断章卡点】且含黑屏/悬念   FAIL(缺)
     E7  情绪流变词: 存在【情绪流变】链条(-> 或 ➔)    WARN(缺)
     E8  复读检测: 主角台词与前集传入(--prev)重复     WARN(重复句)
-    E9  对白行数: 存在 >=4 行"人物:台词"对白(攻防回合近似)  WARN(不足)
+    E9  对白行数: >= 本档位下限(标准/漫剧 4 行, 长档 8 行)  WARN(不足)
     E10 合规红线词(断肢/开膛/下蛊等一票否决直观描写)  FAIL
+    E11 长档中段小钩: 存在【本集中段小钩】(long 档)      FAIL(长档缺)
 退出码: 0=通过(可含WARN), 1=FAIL, 2=用法错误
 """
 import re
@@ -26,7 +32,17 @@ import sys
 # 剧本文本体量阈值(仅计正文: 对白行 + △动作行 + 断章卡点画面描述)
 NET_MIN, NET_MAX = 350, 500          # 实拍短剧
 NET_MIN_ANIME, NET_MAX_ANIME = 260, 400  # 漫剧/竖屏动画
+NET_LONG_MIN, NET_LONG_MAX = 650, 850          # 长档(约3分钟) 实拍
+NET_LONG_ANIME_MIN, NET_LONG_ANIME_MAX = 520, 680  # 长档 漫剧/竖屏动画
 SENT_MAX = 25                        # 单句台词硬上限(常规 12~18)
+
+# 档位 profile（体量区间另按 profile + 是否漫剧解析，见 net_band()）
+PROFILES = {
+    "auto":     {"scenes": 2, "lines": 4, "midhook": False, "label": "自动分档"},
+    "standard": {"scenes": 2, "lines": 4, "midhook": False, "label": "标准档 90~120 秒"},
+    "long":     {"scenes": 3, "lines": 8, "midhook": True,  "label": "长档 约3分钟"},
+    "manju":    {"scenes": 2, "lines": 4, "midhook": False, "label": "漫剧档 60~90 秒"},
+}
 
 OPEN_BAN_WORDS = ["早晨起床", "起床", "拉窗帘", "太阳升起", "醒过来", "走在路上",
                   "整理衣服", "开车上班", "喝咖啡闲聊", "悠闲的清晨", "阳光明媚的早晨"]
@@ -83,6 +99,31 @@ def is_anime(text):
     return "漫剧" in text
 
 
+def is_long(text):
+    """长档项目: 文本含 '长档' 即按长档体量判 E1/E3/E9/E11"""
+    return "长档" in text
+
+
+def resolve_profile(text, profile="auto"):
+    """auto 档按正文自检: 含"长档"→long, 含"漫剧"→manju, 否则 standard"""
+    if profile != "auto":
+        return profile if profile in PROFILES else "standard"
+    if is_long(text):
+        return "long"
+    if is_anime(text):
+        return "manju"
+    return "standard"
+
+
+def net_band(text, profile):
+    """按档位 + 是否漫剧返回正文体量区间"""
+    if profile == "long":
+        return (NET_LONG_ANIME_MIN, NET_LONG_ANIME_MAX) if is_anime(text) else (NET_LONG_MIN, NET_LONG_MAX)
+    if profile == "manju":
+        return NET_MIN_ANIME, NET_MAX_ANIME
+    return (NET_MIN_ANIME, NET_MAX_ANIME) if is_anime(text) else (NET_MIN, NET_MAX)
+
+
 def scene_count(text):
     return len(re.findall(r"^\[场景\]|^【场景】|^##?\s*场景", text, re.M))
 
@@ -99,13 +140,15 @@ def first_content_lines(text, n=3):
     return out
 
 
-def validate(text, prev_texts=()):
+def validate(text, prev_texts=(), profile="auto"):
+    profile = resolve_profile(text, profile)
+    prof = PROFILES[profile]
     fails, warns = [], []
     nc = net_chars(text)
-    lo, hi = (NET_MIN_ANIME, NET_MAX_ANIME) if is_anime(text) else (NET_MIN, NET_MAX)
+    lo, hi = net_band(text, profile)
     if not (lo <= nc <= hi):
         kind = "漫剧" if is_anime(text) else "实拍"
-        fails.append(f"E1 剧本文本体量 {nc} 不在 {lo}~{hi} 区间（{kind}档）")
+        fails.append(f"E1 [{profile}] 剧本文本体量 {nc} 不在 {lo}~{hi} 区间（{kind}档）")
 
     for line in text.splitlines():
         d = _is_dialogue(line)
@@ -115,8 +158,8 @@ def validate(text, prev_texts=()):
                 warns.append(f"E2 单句台词 {len(clean)} 字(>{SENT_MAX}): {clean[:18]}…")
 
     sc = scene_count(text)
-    if sc > 2:
-        fails.append(f"E3 场景数 {sc} >2")
+    if sc > prof["scenes"]:
+        fails.append(f"E3 [{profile}] 场景数 {sc} >{prof['scenes']}")
     if sc == 0:
         warns.append("E3 未检出 [场景] 标记，无法核对场景数")
 
@@ -141,8 +184,10 @@ def validate(text, prev_texts=()):
     rounds = 0
     my_lines = [d for d in (_is_dialogue(l) for l in text.splitlines()) if d]
     rounds = len(my_lines)
-    if rounds < 4:
-        warns.append(f"E9 对白行仅 {rounds} 行(<4)，攻防结构不足")
+    if prof["midhook"] and not re.search(r"【本集中段小钩】|\[本集中段小钩", text):
+        fails.append("E11 长档缺【本集中段小钩】(≈90 秒处必设新信息/新威胁，防滑走)")
+    if rounds < prof["lines"]:
+        warns.append(f"E9 [{profile}] 对白行仅 {rounds} 行(<{prof['lines']})，攻防结构不足")
 
     for prev in prev_texts:
         prev_set = set(re.sub(r"\s", "", p) for p in (_is_dialogue(l) for l in prev.splitlines()) if p)
@@ -233,8 +278,67 @@ def self_test():
     if not any("E2" in x for x in w):
         print("FAIL self-test: >25 字台词应报 E2"); ok = 0
 
+    # 回归5: 长档（约3分钟）—— 双回合 + 中段小钩 + 体量 650~850，auto 档自检
+    long_body = ("".join(f"△ 特写：巴掌扇到半空被反手抓住，第{i}个受力事件推进冲突升级。\n" for i in range(18))
+                 + "".join(f"林辰：第{i}句短台词，带新信息与代价。\n" for i in range(14)))
+    long_good = ("第【1】集：长档样例（长档·约3分钟）\n【本集时长】：180 秒\n"
+                 "[场景]：内景·会所·夜\n[场景]：内景·走廊·夜\n[人物]：林辰、陈峰\n"
+                 + long_body
+                 + "【本集中段小钩】：手机亮起病危通知单，缴费截止今晚，对面按下挂断键。\n"
+                 + "△ 林辰反手拧腕，骨裂声起，铁棍滚落。\n"
+                 + "【本集断章卡点】：电话那头传来绝望哭嚎，陈峰双腿发抖。（黑屏：下滑解锁第2集）\n")
+    f, w, nc = validate(long_good)
+    if f:
+        print("FAIL self-test: 长档样例不应 FAIL:", f, "体量", nc); ok = 0
+    if not (NET_LONG_MIN <= nc <= NET_LONG_MAX):
+        print(f"FAIL self-test: 长档样例体量 {nc} 应在 {NET_LONG_MIN}~{NET_LONG_MAX}"); ok = 0
+    # 长档缺中段小钩 → E11
+    f, _, _ = validate(long_good.replace("【本集中段小钩】", "【中段】"))
+    if not any("E11" in x for x in f):
+        print("FAIL self-test: 长档缺中段小钩应报 E11"); ok = 0
+    # 显式 --format long 检标准档样本 → E1 + E11
+    f, w, _ = validate(GOOD, profile="long")
+    if not any("E1" in x for x in f):
+        print("FAIL self-test: 标准档样本按 long 显式机检应报 E1"); ok = 0
+    if not any("E11" in x for x in f):
+        print("FAIL self-test: 标准档样本按 long 显式机检应报 E11"); ok = 0
+    # 长档场景上限 3：4 场应报 E3
+    f, _, _ = validate(long_good + "[场景]：内景·车库·夜\n[场景]：内景·天台·夜\n")
+    if not any("E3" in x for x in f):
+        print("FAIL self-test: 长档 4 场景应报 E3"); ok = 0
+
     print("[+] self-test PASSED" if ok else "[-] self-test FAILED")
     return 0 if ok else 1
+
+
+def parse_args(args):
+    """返回 (path, profile, prev_paths)；用法错误抛 SystemExit(2)"""
+    path, profile, prevs = None, "auto", []
+    i = 0
+    while i < len(args):
+        a = args[i]
+        if a == "--prev":
+            i += 1
+            while i < len(args) and not args[i].startswith("--"):
+                prevs.append(args[i]); i += 1
+            continue
+        if a == "--long":
+            profile = "long"
+        elif a == "--manju":
+            profile = "manju"
+        elif a == "--format" or a.startswith("--format="):
+            val = a.split("=", 1)[1] if "=" in a else (args[i + 1] if i + 1 < len(args) else "")
+            if "=" not in a:
+                i += 1
+            if val not in PROFILES:
+                print(f"[-] --format 只接受 {'/'.join(PROFILES)}，收到「{val}」"); raise SystemExit(2)
+            profile = val
+        elif a.startswith("--"):
+            print(f"[-] 未知参数「{a}」"); raise SystemExit(2)
+        elif path is None:
+            path = a
+        i += 1
+    return path, profile, prevs
 
 
 def main():
@@ -243,14 +347,12 @@ def main():
         print(__doc__); return 2
     if args[0] == "--self-test":
         return self_test()
-    path = args[0]
-    prevs = []
-    if "--prev" in args:
-        i = args.index("--prev")
-        for p in args[i + 1:]:
-            if p.startswith("--"):
-                break
-            prevs.append(p)
+    try:
+        path, profile, prevs = parse_args(args)
+    except SystemExit as e:
+        return e.code or 2
+    if not path:
+        print(__doc__); return 2
     # 友好处理缺文件/编码错误（避免裸 traceback）
     try:
         text = open(path, encoding="utf-8").read()
@@ -264,8 +366,9 @@ def main():
         except (FileNotFoundError, UnicodeDecodeError):
             print(f"[-] 找不到或无法读取前集文件: {p}"); return 2
     prev_texts = [open(p, encoding="utf-8").read() for p in prevs]
-    fails, warns, nc = validate(text, prev_texts)
-    print(f"== {path}  正文体量≈{nc} ==")
+    profile = resolve_profile(text, profile)
+    fails, warns, nc = validate(text, prev_texts, profile)
+    print(f"== {path}  [{profile} {PROFILES[profile]['label']}]  正文体量≈{nc} ==")
     for x in fails:
         print("[-] FAIL:", x)
     for x in warns:

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""short-drama-factory v3.1 全剧台账机检
+"""short-drama-factory v3.2 全剧台账机检
 
 用法:
     python3 validate_series.py <台账.md> [--episodes 80] [--script-dir 剧本目录]
@@ -8,6 +8,9 @@
 
 台账为 markdown 表格文件（templates/ledger.md 格式），四类账：
     伏笔账 / 人物账 / 道具账 / 世界观规则账
+
+总集数 --episodes 决定付费墙区间：标准档 60/80/100 集；长档（约3分钟/集）30/40/50 集
+（1 长档集 ≈ 2 标准集，墙集数减半，见 references/hongguo-beat-sheet.md §二/§四）。
 
 检查项:
     S1  伏笔"拟收"超期: 状态含 埋/养/未收 且 当前集>拟收+3      WARN
@@ -23,7 +26,9 @@ import re
 import sys
 import pathlib
 
-WALL_RANGES = {60: [(8, 11), (21, 24), (41, 44)], 80: [(10, 15), (28, 32), (55, 58)], 100: [(13, 19), (35, 40), (68, 73)]}
+WALL_RANGES = {60: [(8, 11), (21, 24), (41, 44)], 80: [(10, 15), (28, 32), (55, 58)], 100: [(13, 19), (35, 40), (68, 73)],
+               # 长档（约 3 分钟/集）：集数减半，墙集区间同步折算
+               30: [(4, 6), (10, 12), (20, 22)], 40: [(5, 8), (14, 16), (27, 29)], 50: [(7, 10), (17, 20), (34, 37)]}
 TABLE_KEYS = {"伏笔": "伏笔账", "人物": "人物账", "道具": "道具账", "规则": "世界观规则账"}
 
 
@@ -198,6 +203,17 @@ def self_test():
     dup_cnt = sum(1 for x in w6 if "「陌生人」" in x)
     if dup_cnt != 1:
         print(f"FAIL self-test: S4 同名角色应只报 1 次，实得 {dup_cnt}", w6); ok = 0
+
+    # 回归: 长档付费墙区间（40 集长档：一级 5~8 / 二级 14~16 / 三级 27~29）
+    led_long = LEDGER_GOOD.replace(
+        "付费墙落位: 一级墙 第12集(中点转换) / 二级墙 第30集 / 三级墙 第56集",
+        "付费墙落位: 一级墙 第6集(中点转换) / 二级墙 第15集 / 三级墙 第28集")
+    _, w7, _ = validate_ledger(led_long, 40)
+    if any("S6" in x for x in w7):
+        print("FAIL self-test: 长档 40 集墙落位不应报 S6:", w7); ok = 0
+    _, w8, _ = validate_ledger(LEDGER_GOOD, 40)
+    if not any("S6" in x for x in w8):
+        print("FAIL self-test: 标准档墙集数按长档 40 集核对应报 S6:", w8); ok = 0
 
     print("[+] self-test PASSED" if ok else "[-] self-test FAILED")
     return 0 if ok else 1
