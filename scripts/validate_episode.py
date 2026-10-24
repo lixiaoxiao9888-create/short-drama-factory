@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""short-drama-factory v4.2 单集剧本机检（分档）
+"""short-drama-factory v4.9 单集剧本机检（分档）
 
 用法:
     python validate_episode.py <单集剧本.md> [--format auto|standard|long|manju] [--prev 前集.md ...]
@@ -8,14 +8,14 @@
     （Windows 用 python；macOS / Linux 用 python3）
 
 档位 profile (--format; 默认 auto = 按正文自检: 含"长档"→long, 含"漫剧"→manju, 否则 standard):
-    standard  标准档 90~120 秒   正文体量 实拍 680~900 / 漫剧 480~700   场景 <=2   对白行 >=4
-    long      长档   150~195 秒  正文体量 实拍 1050~1400 / 漫剧 850~1150  场景 <=3   对白行 >=8   必设【本集中段小钩】
-    manju     漫剧档 60~90 秒    正文体量 480~700                       场景 <=2   对白行 >=4
+    standard  标准档 90~120 秒   正文体量 实拍 480~850 / 漫剧 330~620   场景 <=2   对白行 >=4
+    long      长档   150~195 秒  正文体量 实拍 820~1400 / 漫剧 660~1150  场景 <=3   对白行 >=8   必设【本集中段小钩】
+    manju     漫剧档 60~90 秒    正文体量 330~620                       场景 <=2   对白行 >=4
 
 检查项 (FAIL=拦截必须修复, WARN=告警复核, NOTE=保护性反例提示, 明确不是缺陷):
     E1  正文体量【参考带】= 对白+动作行+断章画面（不计【】字段行/[场景][人物]）
           参考带按【本集时长】动态推导（≈5.0~7.6 字/秒·含动作）；无时长则用档位典型
-          WARN(超参考带，不拦) / FAIL(低于参考带 0.6 倍 = 极端空稿)
+          WARN(超参考带，不拦) / FAIL(低于参考带 0.5 倍 = 极端空稿)
     E2  单句台词(常规 12~18 字 / 爆发金句 8~12) 上限 25 字(超长告警,非拦截)   WARN(逐句 >25)
           注: 独白/旁白不按此判(改按 E12 的 os_len/vo_len)
     E3  场景数 <=2 ([场景] 标记计数)                FAIL(>2)
@@ -32,25 +32,25 @@
     E13 独白/旁白连排: 两条相邻, 或紧贴断章收尾            FAIL
     E14 独白里写交代设定 / 抽象情绪                       WARN
     E15 前 3 秒出现独白/旁白(应为场内冲突)                FAIL
-    E16 时长虚标(v3.4.1·long 档): 【本集时长】> 台词量可拆时长×1.20      FAIL
-          可拆时长 = 纯台词字数÷4.5(参考语速) + 动作行数×1.5s + 5s 留白；动作行字数不参与时长换算；
-          写作目标语速 5.5 字/s（15秒≈82字，上限 95字≈6.33字/s）
+    E16 时长虚标(v4.9.1·全档): 【本集时长】> 台词量可拆时长×1.20      FAIL
+          （v4.9.1: 时长带不带"秒"字均可识别；旧版"：180"无"秒"字会绕过校验）
+          可拆时长 = 纯台词字数÷4.5(参考语速) + 动作行数×动作拍权重 + 5s 留白；动作行字数不参与时长换算
     E17 长档降级(v3.4.2·long 档): 【本集时长】< 150 秒(长档下限)          FAIL
-          即"挂长档名头、交标准档体量"：补足纯台词(180s≈990字)或降为 standard 档
-          (8 字动作 ≈ 2~3s，与 8 字台词不同价)——防"氛围 △ 行凑体量、虚标 180 秒"
-    E19 15秒窗口台词密度(v4.0·WARN 生产端建议): 连续对白块 >95 字       WARN
-          △动作行/独白/旁白视为视觉断点重置累积；独白/旁白不计入对白累积；
-          95字≈15秒×6.33字/s触顶，超量则 AI 口型/节奏崩坏——建议插动作行断点或拆分
-    E20 动作单段≤40字(v4.2·WARN 软约束): 单条 △ 镜头净字数 >40 字      WARN
-          一条 △ 超 40 字＝一个镜头塞了两个机位/动作，建议拆为两个 △ 镜头（软约束不拦截）
-    E21 对白/动作字数黄金比 25%~70%(v4.2·WARN): 对白/(对白+△动作)        WARN
-          >70%→缺少肢体冲突与视听调度；<25%→缺乏唇枪舌战；独白/旁白不计入两端
-    E22 台词用语/错别字(常用误用对照，如 竞然/迫不急待/掉过钱…)          WARN(只提示，不拦)
     E18 对白语气供给(v3.4.3·对接导演端 V6.9.3 C16 / model-adapters §5.2):
         E18a 神态短语含空泛情绪结果词(开心/愤怒等)                       WARN
         E18b 全篇对白行无一处语气词(极端态: 嗓音/发声方式信息整集缺失)    WARN
-          语气词写法见 templates/episode-format.md §四 神态短语规格（画面词｜语气词）；
-          部分覆盖不拦（逐句语气由导演端 C16b 在分镜稿上按 50% 缺失率兜底）。
+    E19 15秒窗口台词密度(v4.0·WARN 生产端建议): 连续对白块 >95 字       WARN
+    E20 动作单段≤40字(v4.2·WARN 软约束): 单条 △ 镜头净字数 >40 字      WARN
+    E21 对白/动作字数黄金比 25%~70%(v4.2·WARN): 对白/(对白+△动作)        WARN
+    E22 台词用语/错别字(常用误用对照，如 竞然/迫不急待/掉过钱…)          WARN(只提示，不拦)
+    E23 冲突形态适配: ②行动坚持型必须设【质疑者配角】                    FAIL
+    E24 干聊断层检测(v4.9·WARN 强画面支撑): 连续纯对白 >6 行无 △ 动作行  WARN
+          解决"没有画面支撑、站桩广播剧"痛点；建议每 2~4 句对白穿插一条强视觉 △
+    E25 谜语黑话检测(v4.9·WARN 大白话直给): 对白含未翻译晦涩黑话/谜语词  WARN
+          解决"说的话想半天才能明白什么意思"痛点；专名与黑话当句须翻译为钱/命/地位等大白话后果
+    E26 无效微动作检测(v4.9·WARN 强视觉锚点): △ 含拍不出的微动作/心理词且无强动作标记 WARN
+          封杀"△ 眼神微动 / 微微一怔 / 推了半寸"等假动作充数，要求落到三大视觉锚点
+          （v4.9.1: 弱微动作被凑长氛围描写包住也须告警；含物证砸碎/肢体对抗等强动作的组合 △ 不误报）
 
 保护性反例 (NOTE 级 —— 提示"你可能过度修正了", 不要求修改; 详见 references/protective-counterexamples.md):
     N12 碎句化: 连续 >=5 行对白且每行净字数 <=4      NOTE(疑为绕开 E2 而剁碎完整句)
@@ -69,18 +69,13 @@ NET_LONG_ANIME_MIN, NET_LONG_ANIME_MAX = 660, 1150  # 长档 漫剧/竖屏动画
 SENT_MAX = 25                        # 单句台词上限(WARN 级告警,非拦截; 常规 12~18)
 
 # ---- 长档时长守恒锚点（v4.3：按实测语速重校——15秒≈95字上限，写作目标 5.5 字/s）----
-# E16 管上限（禁虚标）、E17 管下限（禁降级交付）：两端夹住，长档才真的"点长档得长档"。
 LONG_MIN_SEC = 150                   # 长档【本集时长】下限(秒)：低于此即"挂长档名头、交标准档体量"
-DLG_PER_SEC = 4.5                    # 台词→时长换算参考语速(字/s)，用于 E16（容差 ±20%）；
-                                     # 说明：95字/15秒（6.33字/s）是「连续对白时的局部上限」，不是全片均值；
-                                     #      全片对白时间占比宜 60~75%，其余留给动作/留白/转场~→有效均值 ~4.5 字/s
+DLG_PER_SEC = 4.5                    # 台词→时长换算参考语速(字/s)，用于 E16（容差 ±20%）
 DLG_TARGET = {90: 400, 120: 540, 150: 670, 180: 800, 195: 870}   # 各目标时长的纯台词量【参考中值】(字)，非硬门槛
 WIN15_MAX_CHARS = 95                 # E19: 任何连续对白块净字数上限(字)，≈15秒×6.33字/s触顶
+DRY_DLG_RUN_MAX = 6                  # E24 (v4.9): 连续纯对白无 △ 动作行的最大行数上限（>6 行即告警干聊断层）
 
 # ---- 对白语气供给（v3.4.3 · 对接导演端 V6.9.3 C16 / model-adapters §5.2 对白三要素）----
-# 官方对白三要素 = WHO SPEAKS + WHAT THEY SAY + HOW THEY SOUND；
-# 剧本端负责第三要素的"上游供给"：神态短语里的语气词原文保留，导演端直接搬进台词语气位。
-# 规格见 templates/episode-format.md §四（画面词在前｜语气词在后，用全角 ｜ 分界）。
 TONE_WORDS = ("嘶哑", "沙哑", "气音", "颤声", "发颤", "哭腔", "哽咽", "破音", "气若游丝",
               "有气无力", "低语", "轻声", "柔声", "厉声", "厉喝", "嘶吼", "低吼", "怒喝",
               "咆哮", "一字一顿", "一字一句", "拖长音", "阴阳怪气", "讥诮", "嗤笑", "冷笑",
@@ -108,18 +103,38 @@ TYPO_REGEX = (
     (r"掉(?:过|了)[^。！？\n]{0,4}(?:钱|银子)", "「掉」用于钱物不通，口语应为「掏」/「出」"),
 )
 
+# ---- E25 谜语黑话与未翻译设定词（v4.9 新增 · WARN 级：防观众想半天听不懂）----
+OBSCURE_JARGON_WORDS = (
+    "法则缝隙", "气运锚点", "因果闭环", "维度坍缩", "高维投影",
+    "底层逻辑闭环", "赋能矩阵", "火漏", "哑青", "第七份", "第八份", "把油灯往"
+)
+
+# ---- E26 无效微动作（v4.9 新增 · WARN 级：防镜头拍不出来的假动作充数）----
+WEAK_MICRO_ACTIONS = (
+    "眼神微动", "眼神微闪", "目光微闪", "目光微动", "微微一怔",
+    "若有所思", "陷入沉思", "嘴角微扬", "嘴角微勾", "推了半寸", "移了半寸"
+)
+
+# 强动作标记（v4.9.1 新增）：△ 行内命中即视为有可见物理结果/物证对抗，E26 放行。
+# 用于修复"弱微动作被凑长氛围描写包住即绕过检测"的盲区：命中弱词但行内无任何
+# 强动作标记时，无论 △ 行长短都告警（组合△"微微一怔+茶杯砸碎"不误报）。
+STRONG_ACT_MARKERS = (
+    "砸", "摔", "甩", "拍在", "拍桌", "拍案", "重拍", "踹", "踢", "扇",
+    "掀", "撞", "掐", "抓住", "拽", "扯", "泼", "烧", "点燃", "撕",
+    "跪", "瘫", "倒地", "跌", "扔", "抛", "夺", "抢", "掏出", "抽出",
+    "拔出", "按住", "挡", "躲", "冲上", "扑", "抱住", "拖", "绑", "堵住",
+    "捂", "翻过", "推翻", "推开", "推倒", "举", "亮出", "亮明", "逼近",
+    "踉跄", "后退", "转身", "起身", "站起", "碎", "裂", "滚落", "滑落",
+    "溅", "冒出", "涨红", "攥", "捏", "摁", "特写", "推给", "滑到"
+)
+
 # ---- 独白 / 旁白（非说话的叙述通道）----
-# 详见 references/inner-monologue-vo.md：独白是「配额制工具」，不是台词，也不是心理描写替身。
 VO_OS_TAGS = ("内心独白", "独白", "心声")            # 只有观众听见的说话人心声
 VO_VO_TAGS = ("旁白", "画外音", "画面字幕", "字幕")   # 第三人称点题 / 时间锚
-# E14：独白里出现「交代设定/前情」信号词，或抽象情绪词（应写「具体的账」）
 VO_EXPO_WORDS = ["事情要从", "这一切都要从", "这一切都因为", "之所以", "众所周知",
                  "前情", "话说当年", "回顾一下", "背景是", "原来是这样的"]
 VO_ABSTRACT_WORDS = ["五味杂陈", "百感交集", "思绪万千", "心如刀割", "难以言表", "感慨万千"]
 
-# 档位 profile（体量区间另按 profile + 是否漫剧解析，见 net_band()）
-#   os / os_len: 内心独白 每集配额(处) / 单处字数上限
-#   vo / vo_len: 旁白·字幕 每集配额(处) / 单处字数上限
 PROFILES = {
     "auto":     {"scenes": 2, "lines": 4, "midhook": False, "os": 1, "os_len": 25, "vo": 1, "vo_len": 12, "label": "自动分档"},
     "standard": {"scenes": 2, "lines": 4, "midhook": False, "os": 1, "os_len": 25, "vo": 1, "vo_len": 12, "label": "标准档 90~120 秒"},
@@ -130,12 +145,9 @@ PROFILES = {
 OPEN_BAN_WORDS = ["早晨起床", "起床", "拉窗帘", "太阳升起", "醒过来", "走在路上",
                   "整理衣服", "开车上班", "喝咖啡闲聊", "悠闲的清晨", "阳光明媚的早晨"]
 
-# 注: 不含 "△" —— 动作行本身不等于冲突, 否则任何以动作开场的剧本恒过 E4
-# 注: 不含 "冷笑" —— "冷笑"是 AI 假动作陈词滥调(见反AI禁词口径), 不应作为开局冲突信号词
 CONFLICT_SIGNALS = ["！?", "！", "枪", "刀", "巴掌", "扔", "砸", "吼",
                     "逼", "跪", "撕", "拍在", "顶在", "推", "踹", "骂", "羞辱", "退婚",
                     "病危", "签字", "死", "滚", "住手", "救", "断裂", "炸", "烧", "血"]
-# ②行动坚持型的开篇钩子是「反常动作」，不属于以上冲突词——另附表，避免被 E4 误杀
 ACTION_SIGNALS = ["囤", "搬", "扛", "抬", "焊", "封", "锁", "插销", "装箱", "码",
                   "发电机", "钢板", "密封", "加固", "抢购", "屯", "备货", "储", "水桶",
                   "断电", "停水", "挖", "砌", "钻", "拧", "钉", "背", "贴", "算"]
@@ -150,13 +162,7 @@ _VO_LINE_RE = re.compile(r"^(内心独白|独白|心声|旁白|画外音|画面�
 
 
 def _vo_line(line):
-    """独白/旁白行 → (kind, 内容)；kind ∈ {'os' 内心独白, 'vo' 旁白/字幕}；非独白行返回 None
-
-    这是「只有观众听见」的叙述通道，不是台词。因此：
-      - 不计入 E9 对白行数（防「用独白充数绕过攻防结构检查」的漏洞）
-      - 不按 E2 台词 25 字上限判，改按本档位 os_len / vo_len 判（E12）
-    规格见 references/inner-monologue-vo.md。
-    """
+    """独白/旁白行 → (kind, 内容)；kind ∈ {'os' 内心独白, 'vo' 旁白/字幕}；非独白行返回 None"""
     s = line.strip()
     if not s or s.startswith(("[", "△", "【", "#", ">")):
         return None
@@ -189,14 +195,7 @@ def _paren_of(line):
 
 
 def net_chars(text):
-    """剧本文本体量: 仅计
-        - 对白行台词
-        - 独白/旁白行内容（占用成片时长，故计入体量；但不计入对白行数）
-        - △ 动作指示行内容
-        - 【本集断章卡点】画面描述
-    剔除: 【所属阶段】【黄金前3秒钩子】【情绪流变】【本集时长】等字段行,
-          以及 [场景]/[人物] 标记行(结构性元数据, 非剧本正文)
-    """
+    """剧本文本体量: 仅计对白行台词 + 独白/旁白行内容 + △动作指示行内容 + 【本集断章卡点】画面描述"""
     total = 0
     for line in text.splitlines():
         s = line.strip()
@@ -213,15 +212,14 @@ def net_chars(text):
         elif s.startswith("【本集断章卡点】"):
             body = re.sub(r"^【本集断章卡点】\s*[:：]?\s*", "", s)
         else:
-            continue  # 字段行【】/标记行[]/普通行 一律不计
+            continue
         body = re.sub(r"[\s，。！？；：、…—\-·“”\"'‘’（）()《》!?.]", "", body)
         total += len(body)
     return total
 
 
 def _header_text(text):
-    """只取剧本头部（前 3 行：集标题/档位标注区）——避免正文里随口出现的
-    '长档/漫剧' 字样把 auto 分档带偏。显式档位请用 --format。"""
+    """只取剧本头部（前 3 行：集标题/档位标注区）"""
     return "\n".join(text.splitlines()[:3])
 
 
@@ -247,9 +245,7 @@ def resolve_profile(text, profile="auto"):
 
 
 def net_band(text, profile):
-    """正文体量【参考带】。优先按剧本自报的【本集时长】动态推导，并按冲突形态微调系数：
-    ①对话型 ×5.0~7.6（台词为主）/ 混合 ×4.2~6.5 / ②行动型 ×3.5~5.5（动作承载、文字量天然少）。
-    无【本集时长】时退回档位典型带。体量是参考值，不硬卡（见 E1）——用户说“我这集 4 分钟”就按 240 秒算。"""
+    """正文体量【参考带】。优先按剧本自报的【本集时长】动态推导，并按冲突形态微调系数"""
     m = re.search(r"【本集时长】[：:]\s*(\d+)", text)
     if m:
         t = int(m.group(1))
@@ -271,7 +267,7 @@ def scene_count(text):
 def first_content_lines(text, n=3):
     out = []
     for line in text.splitlines():
-        s = line.strip()
+        s = line.strip().lstrip("\ufeff").strip()  # v4.9.1: 剥离 BOM，防其挤占前3秒检测窗口
         if not s or s.startswith(("#", ">", "第", "【", "[")):
             continue
         out.append(s)
@@ -281,9 +277,7 @@ def first_content_lines(text, n=3):
 
 
 def conflict_mode(text):
-    """冲突形态：对话型（嘴仗）/ 行动型（准备×质疑）/ 混合；缺省=对话型。
-    规格见 references/conflict-modes.md。行动型：战场在错位（做事↔质疑），对白天然稀少
-    → E9 对白行下限减半、E21 对白占比下限降至 10%，否则行动型会被对白类规则误杀。"""
+    """冲突形态：对话型（嘴仗）/ 行动型（准备×质疑）/ 混合；缺省=对话型。"""
     m = re.search(r"【冲突形态】[：:]\s*([^\n【]{1,30})", text)
     if m:
         s = re.split(r"[／/\s、,，]", m.group(1).strip())[0]
@@ -299,12 +293,12 @@ def validate(text, prev_texts=(), profile="auto"):
     prof = PROFILES[profile]
     mode = conflict_mode(text)
     if mode == "行动型":
-        lines_min = max(3, prof["lines"] // 2)      # 长档 8→4（对白天然少）
+        lines_min = max(3, prof["lines"] // 2)
     elif mode == "混合":
-        lines_min = max(4, prof["lines"] - 2)       # 长档 8→6（行动外壳+对话火力）
+        lines_min = max(4, prof["lines"] - 2)
     else:
         lines_min = prof["lines"]
-    act_credit = 4.0 if mode == "行动型" else (2.5 if mode == "混合" else 1.5)    # 动作拍权重：行动型>混合>对话型（行动型靠准备动作承载叙事，否则 E16/E17 两头夹）
+    act_credit = 4.0 if mode == "行动型" else (2.5 if mode == "混合" else 1.5)
     fails, warns = [], []
     nc = net_chars(text)
     lo, hi = net_band(text, profile)
@@ -313,8 +307,7 @@ def validate(text, prev_texts=(), profile="auto"):
     elif not (lo <= nc <= hi):
         warns.append(f"E1 正文体量 {nc} 超出参考带 {lo}~{hi}（体量为参考值：按【本集时长】或内容判断，不拦）")
 
-    # E2 单气口≤25字：仅限对白行，按标点拆 clause（一行内可有多个气口），逐 clause 净字数 >25 → WARN；
-    # △动作行/独白旁白不按此判（独白/旁白走 E12），不误伤动作描写。
+    # E2 单气口≤25字：仅限对白行，按标点拆 clause（一行内可有多个气口），逐 clause 净字数 >25 → WARN
     for line in text.splitlines():
         d = _is_dialogue(line)
         if not d:
@@ -330,7 +323,7 @@ def validate(text, prev_texts=(), profile="auto"):
     if _md:
         _t = int(_md.group(1))
         if _t > 0:
-            _cap = max(_cap, int(round(_t / 75.0)))   # 自定义长集（>195s）：场景上限随集长放宽，≈每 75 秒 1 场
+            _cap = max(_cap, int(round(_t / 75.0)))
     if sc > _cap:
         fails.append(f"E3 [{profile}] 场景数 {sc} >{_cap}")
     if sc == 0:
@@ -368,11 +361,8 @@ def validate(text, prev_texts=(), profile="auto"):
         if _q and _q.group(1).strip() in ("", "无", "无。", "—", "-"):
             fails.append("E23 行动型缺【质疑者配角】（对手位缺失：准备×质疑 必须有质疑者；无对手位＝行动流水账）")
 
-    # ---- 对白语气供给（E18 · v3.4.3；对接导演端 V6.9.3 C16 / model-adapters §5.2）----
-    # 剧本端负责对白三要素之三 HOW THEY SOUND 的上游供给：语气词写在神态短语里、原文保留，
-    # 导演端直接搬进镜行台词语气位 `台词：【角色（语气）："…"】`（分流表见 §5.2）。
+    # ---- 对白语气供给（E18 · v3.4.3）----
     if my_lines:
-        # E18a 神态短语空泛情绪结果词（导演端无法执行的结果词，需改四维可执行词）
         for l in text.splitlines():
             p = _paren_of(l)
             if not p:
@@ -383,7 +373,6 @@ def validate(text, prev_texts=(), profile="auto"):
                              "改为可执行的语气/画面词（如 压着怒·低语 ／ 指节捏白），"
                              "规格见 templates/episode-format.md §四")
                 break
-        # E18b 全篇对白零语气词（极端态：HOW THEY SOUND 整集缺失 → 下游表情/声音一并扁平）
         tone_lines = sum(1 for l in text.splitlines()
                          if _is_dialogue(l) and any(w in _paren_of(l) for w in TONE_WORDS))
         if tone_lines == 0:
@@ -391,9 +380,8 @@ def validate(text, prev_texts=(), profile="auto"):
                          "官方对白三要素之三 HOW THEY SOUND 上游缺供：给关键对白补语气词"
                          "（如（气音·发颤）／（俯身逼近｜甜笑·柔声）），规格见 templates/episode-format.md §四")
 
-    # ---- 独白 / 旁白通道（E12~E15；规格见 references/inner-monologue-vo.md）----
-    # 独白是「配额制工具」：只服务委屈立住/点题转折/立人设/心事外化，不承担交代设定。
-    seq = []            # 内容行序列 (cls, text)，cls ∈ os/vo/dia/act/break
+    # ---- 独白 / 旁白通道（E12~E15）----
+    seq = []
     for line in text.splitlines():
         s = line.strip()
         if not s or s.startswith(("#", ">", "[场景", "[人物", "第【")):
@@ -448,12 +436,12 @@ def validate(text, prev_texts=(), profile="auto"):
             fails.append("E15 前 3 秒出现独白/旁白：黄金 3 秒必须是场内冲突（独白开场＝软开场，踩红线 1）")
             break
 
-    # E16 时长虚标（v3.4.1·长档；v4.0 报错信息补双语速口径）：【本集时长】必须能被台词量支撑
-    # 可拆时长 ≈ 纯台词字数÷4.5(参考语速) ＋ 动作行数×act_credit(对话型1.5 / 混合2.0 / 行动型2.5) ＋ 断章留白5s
-    # 动作行字数不参与换算（8 字动作 ≈ 2~3s，与 8 字台词不同价）——防"动作行凑体量虚标 180 秒"
-    # 参考语速 4.5 字/s（= 局部上限 6.33 × 对白时间占比~0.7）；E16 容差 ±20%（不卡小偏差）
-    m_dur = re.search(r"【本集时长】[:：]?\s*(\d{2,4})\s*秒", text)
-    if m_dur and profile == "long":
+    # E16 时长虚标 / E17 长档降级
+    # v4.9.1 修复：①【本集时长】带不带「秒」字均可识别（旧版写"：180"会整条绕过校验）；
+    # ②E16 扩为全档生效——任何档位只要标注了【本集时长】就按 4.5 字/s 口径核对防虚标；
+    # E17（<150s 拦降级）仍仅长档生效。
+    m_dur = re.search(r"【本集时长】[：:]?\s*(\d{2,4})(?:\s*秒)?", text)
+    if m_dur:
         dlg_chars = 0
         action_lines = 0
         for line in text.splitlines():
@@ -475,9 +463,7 @@ def validate(text, prev_texts=(), profile="auto"):
                 "参考语速 4.5 字/s（局部上限 6.33 × 对白占比 0.7），容差 ±20%；补足台词量或改标真实时长；"
                 "动作行字数不参与时长换算，禁止用氛围 △ 行凑体量虚标")
 
-        # E17 长档时长下限（v3.4.2）：标注低于档位下限 = 降级交付
-        # 补 E16 的反面——E16 拦"虚标"，E17 拦"诚实标短的降级"，两端夹住长档时长守恒。
-        if claimed < LONG_MIN_SEC:
+        if profile == "long" and claimed < LONG_MIN_SEC:
             fails.append(
                 f"E17 长档降级：标注 {claimed}s 低于长档下限 {LONG_MIN_SEC}s——挂着长档名头、交的是标准档体量"
                 f"（纯台词仅 {dlg_chars} 字，可拆 {est:.0f}s）。两条出路：① 补足纯台词量做成真长档"
@@ -496,42 +482,62 @@ def validate(text, prev_texts=(), profile="auto"):
         if w in text:
             fails.append(f"E10 合规一票否决类直观描写「{w}」")
 
-    # ---- E19 15秒窗口台词密度（v4.0·WARN 生产端建议，非平台硬约束）----
-    # 连续对白块净字数 >95 → WARN：95字≈15秒×6.33字/s触顶，超量则 AI 口型/节奏崩坏。
-    # △动作行/独白/旁白/字段行/断章行均视为视觉断点，重置累积；独白/旁白本就不计入对白累积。
+    # ---- E19 15秒窗口台词密度 + E24 连续干聊断层检测（v4.9 新增）----
     run_chars = 0
+    run_lines = 0
+    max_dry_run = 0
     for line in text.splitlines():
         s = line.strip()
+        if not s:
+            continue
         d = _is_dialogue(s)
         if d is not None:
             run_chars += len(re.sub(r"[\s，。！？；：、…—]", "", d))
+            run_lines += 1
+            if run_lines > max_dry_run:
+                max_dry_run = run_lines
             continue
         if run_chars > WIN15_MAX_CHARS:
             warns.append(f"E19 15秒窗口台词超量：连续对白 {run_chars} 字超过 {WIN15_MAX_CHARS} 字上限"
                          f"（对应 {run_chars / 15:.2f} 字/s 触顶 6.33 字/s），建议插入 △动作行断点或拆分")
         run_chars = 0
+        run_lines = 0
     if run_chars > WIN15_MAX_CHARS:
         warns.append(f"E19 15秒窗口台词超量：连续对白 {run_chars} 字超过 {WIN15_MAX_CHARS} 字上限"
                      f"（对应 {run_chars / 15:.2f} 字/s 触顶 6.33 字/s），建议插入 △动作行断点或拆分")
+    if max_dry_run > DRY_DLG_RUN_MAX:
+        warns.append(f"E24 干聊断层：连续 {max_dry_run} 行对白无 △ 动作支撑（上限 {DRY_DLG_RUN_MAX} 行），"
+                     "画面易沦为站桩广播剧——建议每 2~4 句对白穿插一条强视觉 △（物理结果/身份反差/物证对抗）")
 
-    # ---- E20 动作单段≤40字软约束（WARN）：单条 △ 镜头净字数 >40 字 → 建议拆为两个 △ 镜头 ----
-    # 一条 △ 超过 40 字＝一个镜头塞了两个机位/动作，导演端无法一镜拍完；WARN 不拦截。
-    # ---- E21 对白/动作字数黄金比 25%~70%（WARN）：比例=对白净字数/(对白净字数+△动作净字数) ----
-    # 对白>70% → 全靠嘴说、缺肢体冲突与视听调度；<25% → 缺唇枪舌战。独白/旁白不计入两端（非攻防台词）。
+    # ---- E20 动作单段≤40字 + E21 对白/动作黄金比 25%~70% + E26 无效微动作检测（v4.9 新增）----
     act_total = 0
     dlg_total = 0
+    weak_act_hit = None
     for line in text.splitlines():
         s = line.strip()
         if s.startswith("△"):
             body = re.sub(r"^△\s*", "", s)
-            n = len(re.sub(r"[\s，。！？；：、…—\-·“”\"‘’（）()《》!?.]", "", body))
+            clean_act = re.sub(r"[\s，。！？；：、…—\-·“”\"‘’（）()《》!?.]", "", body)
+            n = len(clean_act)
             if n > 40:
                 warns.append(f"E20 动作单段{n}字(>40)，建议拆为两个△镜头")
+            # v4.9.1 修复：弱微动作即使被凑长的氛围描写包住（净字数>14）也须告警；
+            # 但行内含强动作标记（物证砸碎/肢体对抗等）的组合 △ 不误报
+            if weak_act_hit is None:
+                for w in WEAK_MICRO_ACTIONS:
+                    if w in body:
+                        if not any(m in body for m in STRONG_ACT_MARKERS):
+                            weak_act_hit = body
+                        break
             act_total += n
         else:
             d = _is_dialogue(s)
             if d is not None:
                 dlg_total += len(re.sub(r"[\s，。！？；：、…—\-·“”\"‘’（）()《》!?.]", "", d))
+    if weak_act_hit is not None:
+        warns.append(f"E26 无效微动作：『△ {weak_act_hit}』镜头缺乏可见物理结果或物证对抗——"
+                     "请改为三大视觉锚点（物理破坏/身份反差忙活/物证亮牌），见 references/craft-quality-layer.md §四·补")
+
     denom = dlg_total + act_total
     if denom > 0:
         ratio = dlg_total / denom
@@ -543,8 +549,9 @@ def validate(text, prev_texts=(), profile="auto"):
             if ratio < _lo:
                 warns.append(f"E21 对白占比{pct}%<{int(_lo*100)}%，缺乏唇枪舌战" + (f"（{mode}已放宽）" if mode != "对话型" else ""))
 
-    # ---- E22 台词用语/错别字（WARN，只提示不拦）----
+    # ---- E22 台词用语/错别字 + E25 谜语黑话与未翻译设定词检测（v4.9 新增）----
     _hit = set()
+    _jargon_hit = set()
     for _raw in text.splitlines():
         _s = _raw.strip()
         if not _s or _s.startswith(("【", "[", "#", ">", "△")):
@@ -558,6 +565,10 @@ def validate(text, prev_texts=(), profile="auto"):
             if _m and _pat not in _hit:
                 _hit.add(_pat)
                 warns.append(f"E22 台词用语：『{_m.group(0)}』——{_note}")
+        for _jw in OBSCURE_JARGON_WORDS:
+            if _jw in _s and _jw not in _jargon_hit:
+                _jargon_hit.add(_jw)
+                warns.append(f"E25 谜语黑话告警：台词含晦涩词『{_jw}』——须当句用大白话直给翻译为具体利害（多少钱/谁死谁活/什么物证）")
 
     return fails, warns, nc
 
@@ -575,11 +586,7 @@ BRK_MIN = 20        # N14: 断章段净字数下限
 
 
 def collect_notes(text, profile="auto"):
-    """保护性反例提示（NOTE 级）—— 明确不是缺陷，提示「可能过度修正了」。
-
-    详见 references/protective-counterexamples.md。
-    三级输出约定: FAIL 必须修 / WARN 需人工复核（可判定成立） / NOTE 不要求修改。
-    """
+    """保护性反例提示（NOTE 级）—— 明确不是缺陷，提示「可能过度修正了」。"""
     profile = resolve_profile(text, profile)
     prof = PROFILES[profile]
     mode = conflict_mode(text)
@@ -712,7 +719,7 @@ def self_test():
     if not any("E4" in x for x in f):
         print("FAIL self-test: △ 开场的废镜头剧本应报 E4"); ok = 0
 
-    # 回归3: 漫剧档体量(480~700)应可用
+    # 回归3: 漫剧档体量(330~620)应可用
     anime = "第【1】集：漫剧\n【情绪流变】：受辱 ➔ 隐忍 ➔ 反杀 ➔ 绝命断章\n[场景]：内景·堂·日\n[人物]：甲、乙\n" + "".join(f"△ 具体的物理动作行编号{i}，可被镜头拍到的行为事件推进本集冲突。\n" for i in range(18)) + "甲：你确定要这么做？\n乙：我确定。\n甲：那就别怪我。\n乙：来吧。\n【本集断章卡点】：灯灭人散，只余一击。（黑屏：下滑解锁）\n"
     f, w, _ = validate(anime)
     if any("E1" in x for x in f):
@@ -724,7 +731,7 @@ def self_test():
     if not any("E2" in x for x in w):
         print("FAIL self-test: >25 字台词应报 E2"); ok = 0
 
-    # 回归5: 长档（150~195 秒弹性）—— 双回合 + 中段小钩 + 体量 1050~1400 + 台词为主体，auto 档自检
+    # 回归5: 长档（150~195 秒弹性）
     long_body = ("".join(f"△ 受力事件{i}：巴掌扇到半空被反手抓住，冲突再升一级。\n" for i in range(10))
                  + "".join(f"林辰：第{i}句攻防台词，抛出新信息并抬价施压。\n" for i in range(48)))
     long_good = ("第【1】集：长档样例（长档·约3分钟）\n【本集时长】：180 秒\n"
@@ -738,43 +745,35 @@ def self_test():
         print("FAIL self-test: 长档样例不应 FAIL:", f, "体量", nc); ok = 0
     if not (NET_LONG_MIN <= nc <= NET_LONG_MAX):
         print(f"FAIL self-test: 长档样例体量 {nc} 应在 {NET_LONG_MIN}~{NET_LONG_MAX}"); ok = 0
-    # 长档缺中段小钩 → E11
     f, _, _ = validate(long_good.replace("【本集中段小钩】", "【中段】"))
     if not any("E11" in x for x in f):
         print("FAIL self-test: 长档缺中段小钩应报 E11"); ok = 0
-    # E16 时长虚标：台词量减半仍标 180 秒 → FAIL（动作行凑体量模式）
     f, _, _ = validate(long_good.replace(
         "".join(f"林辰：第{i}句攻防台词，抛出新信息并抬价施压。\n" for i in range(48)),
         "".join(f"林辰：第{i}句攻防台词，抛出新信息并抬价施压。\n" for i in range(16))))
     if not any("E16" in x for x in f):
         print("FAIL self-test: 台词量不足仍标 180 秒应报 E16 时长虚标:", f); ok = 0
-    # E17 长档降级：同体量台词（可拆约 190 秒）却只标 110 秒 → FAIL（"诚实标短"的降级交付）
     f, _, _ = validate(long_good.replace("【本集时长】：180 秒", "【本集时长】：110 秒"), profile="long")
     if not any("E17" in x for x in f):
         print("FAIL self-test: 长档标 110 秒应报 E17 长档降级:", f); ok = 0
-    # E17 反向：≥150 秒不应误报（150/180/195 三个合法点）
     for _d in (150, 180, 195):
         f, _, _ = validate(long_good.replace("【本集时长】：180 秒", f"【本集时长】：{_d} 秒"), profile="long")
         if any("E17" in x for x in f):
             print(f"FAIL self-test: 长档标 {_d} 秒不应报 E17:", [x for x in f if "E17" in x]); ok = 0
-    # 显式 --format long 检标准档样本 → 长档缺中段小钩(E11)；极端空稿应报 E1
     f, w, _ = validate(GOOD, profile="long")
     if not any("E11" in x for x in f):
         print("FAIL self-test: 标准档样本按 long 显式机检应报 E11"); ok = 0
     f, _, _ = validate(BAD, profile="long")
     if not any("E1" in x for x in f):
         print("FAIL self-test: 极端空稿应报 E1"); ok = 0
-    # 体量参考带随【本集时长】动态推导：超过参考带上限不应 FAIL（用户说多长就多长）
     f, _, _ = validate(long_good.replace("【本集时长】：180 秒", "【本集时长】：60 秒"), profile="manju")
     if any("E1" in x for x in f):
         print("FAIL self-test: 体量超参考带上限不应 FAIL:", [x for x in f if "E1" in x]); ok = 0
-    # 长档场景上限 3：4 场应报 E3
     f, _, _ = validate(long_good + "[场景]：内景·车库·夜\n[场景]：内景·天台·夜\n")
     if not any("E3" in x for x in f):
         print("FAIL self-test: 长档 4 场景应报 E3"); ok = 0
 
     # ---- 保护性反例（NOTE 级）回归 ----
-    # N0: 合格样稿不应产生任何 NOTE（防误报）
     n = collect_notes(GOOD)
     if n:
         print("FAIL self-test: GOOD 样例不应产生 NOTE:", n); ok = 0
@@ -782,14 +781,12 @@ def self_test():
     if n:
         print("FAIL self-test: 长档样例不应产生 NOTE:", n); ok = 0
 
-    # N12: 连续 6 行 <=4 字对白 → 碎句化提示
     frag = ("第【1】集\n[场景]：内景·堂·日\n[人物]：甲、乙\n△ 巴掌扇到半空被反手抓住。\n"
             "甲：跪下。\n乙：凭什么。\n甲：闭嘴。\n乙：你敢。\n甲：再说。\n乙：罢了。\n"
             "【本集断章卡点】：巴掌落下，满堂死寂，门外脚步声骤起，全家齐齐转头望去，画面定住。（黑屏：下滑立即解锁第2集）\n")
     if not any("N12" in x for x in collect_notes(frag)):
         print("FAIL self-test: 连续短对白应报 N12 碎句化"); ok = 0
 
-    # N13: 14 条低信息动作行 + 仅 1 行对白 → 堆动作提示
     dump = ("第【1】集\n[场景]：内景\n[人物]：甲\n"
             + "".join("△ 抬手。\n" for _ in range(14))
             + "甲：你来了。\n"
@@ -797,13 +794,11 @@ def self_test():
     if not any("N13" in x for x in collect_notes(dump)):
         print("FAIL self-test: 堆低信息动作行应报 N13"); ok = 0
 
-    # N14: 体量贴下限 + 断章段过干 → 压过程提示
     thin = ("第【1】集\n[场景]：内景\n[人物]：甲\n△ 把刀拍在桌上。\n甲：说。\n"
             "【本集断章卡点】：黑屏。\n")
     if not any("N14" in x for x in collect_notes(thin)):
         print("FAIL self-test: 体量贴下限且断章过干应报 N14"); ok = 0
 
-    # NOTE 不得混入 FAIL 列表（NOTE 是「不要求修改」级，绝不能被当作拦截）
     for sample in (frag, dump, thin, GOOD):
         f, _, _ = validate(sample)
         bad = [x for x in f if re.match(r"^N\d", x)]
@@ -811,7 +806,6 @@ def self_test():
             print("FAIL self-test: NOTE 级不应出现在 FAIL 列表:", bad); ok = 0
 
     # ---- 独白 / 旁白（VO）回归 ----
-    # V1: 独白不得充作对白行 —— 3 句真台词 + 1 处独白 + 1 处旁白，E9 应报不足（标准档下限 4）
     vo_fill = ("第【1】集\n[场景]：内景·堂屋·日\n[人物]：周韶华、二儿媳\n"
                "△ 巴掌扇到半空被反手抓住，满堂死寂。\n"
                "二儿媳：周韶华你说是不是。\n"
@@ -829,7 +823,6 @@ def self_test():
     if any("E12" in x or "E13" in x or "E15" in x for x in f):
         print("FAIL self-test: 合规的独白样本不应报 E12/E13/E15:", f); ok = 0
 
-    # V2: 独白豁免台词 25 字上限（长档单处 ≤30）——28 字独白不应报 E2、也不应报 E12
     vo28 = "我这一辈子给他生了五个孩子，他走的那天我还在灯下缝他的棉袄。"
     vo_long = ("第【1】集：长档样例（长档·约3分钟）\n[场景]：内景·堂屋·日\n[人物]：周韶华\n"
                "△ 巴掌扇到半空被反手抓住，满堂死寂。\n"
@@ -845,12 +838,10 @@ def self_test():
     if any("E12" in x for x in f):
         print("FAIL self-test: 长档 28 字独白不应报 E12(上限 30):", [x for x in f if "E12" in x]); ok = 0
 
-    # V3: 超配额 —— 标准档 2 处内心独白 → E12
     f, _, _ = validate(vo_fill.replace("旁白：老实人反抗了。", "内心独白：这一世我谁都不欠了。"))
     if not any("E12" in x for x in f):
         print("FAIL self-test: 标准档 2 处内心独白应报 E12"); ok = 0
 
-    # V4: 连排 —— 两条独白相邻 → E13
     f, _, _ = validate("第【1】集\n[场景]：内景·堂屋·日\n[人物]：甲\n△ 巴掌扇到半空被反手抓住。\n"
                        "内心独白：我给他生了五个孩子。\n旁白：老实人反抗了。\n"
                        "甲：你说是不是。\n乙：我说是。\n丙：我说不是。\n"
@@ -858,7 +849,6 @@ def self_test():
     if not any("E13" in x for x in f):
         print("FAIL self-test: 连续两条独白应报 E13"); ok = 0
 
-    # V5: 独白紧贴断章 → E13
     f, _, _ = validate("第【1】集\n[场景]：内景·堂屋·日\n[人物]：甲\n△ 巴掌扇到半空被反手抓住。\n"
                        "甲：你说是不是。\n乙：我说是。\n丙：我说不是。\n丁：我说是。\n"
                        "内心独白：这一世我谁都不欠了。\n"
@@ -866,7 +856,6 @@ def self_test():
     if not any("E13" in x for x in f):
         print("FAIL self-test: 独白紧贴断章应报 E13"); ok = 0
 
-    # V6: 前 3 秒独白 → E15
     f, _, _ = validate("第【1】集\n[场景]：内景·堂屋·日\n[人物]：甲\n"
                        "内心独白：我给他生了五个孩子。\n△ 巴掌扇到半空被反手抓住。\n"
                        "甲：你说是不是。\n乙：我说是。\n"
@@ -874,17 +863,14 @@ def self_test():
     if not any("E15" in x for x in f):
         print("FAIL self-test: 前3秒独白应报 E15"); ok = 0
 
-    # V7: 独白交代设定 → E14
     f, w, _ = validate(vo_fill.replace("内心独白：我给他生了五个孩子。", "内心独白：这一切都要从三十年前说起。"))
     if not any("E14" in x for x in w):
         print("FAIL self-test: 独白交代设定应报 E14"); ok = 0
 
     # ---- 对白语气供给（E18 · v3.4.3）回归 ----
-    # T1: 神态短语空泛情绪词 → E18a
     f, w, _ = validate(GOOD.replace("苏清雪（冷漠）：", "苏清雪（生气）："))
     if not any("E18a" in x for x in w):
         print("FAIL self-test: 神态短语空泛情绪词应报 E18a:", [x for x in w if "E18" in x]); ok = 0
-    # T2: 全篇对白零语气词 → E18b（把 GOOD 的神态短语全部换成语气无关词并去掉带语气词的行）
     t2 = GOOD
     for a, b in (("（吐出烟圈）", "（把玩打火机）"), ("（冷漠）", "（抱臂）"),
                  ("（声音极低）", "（盯着他）"), ("（恼羞成怒）", "（踹翻椅子）"),
@@ -894,18 +880,15 @@ def self_test():
     f, w, _ = validate(t2)
     if not any("E18b" in x for x in w):
         print("FAIL self-test: 全篇对白零语气词应报 E18b:", [x for x in w if "E18" in x]); ok = 0
-    # T3: 合规语气供给（含 ｜ 分界的混合式）不应报 E18a/E18b
     t3 = GOOD.replace("苏清雪（冷漠）：", "苏清雪（抱臂后退｜冷漠疏离）：")
     f, w, _ = validate(t3)
     if any("E18a" in x or "E18b" in x for x in w):
         print("FAIL self-test: 合规语气供给不应报 E18:", [x for x in w if "E18" in x]); ok = 0
-    # T4: 台词用语/错别字 → E22 WARN（只提示不拦）
     t4 = GOOD.replace("林辰（声音极低）：三年前你陈家跪着求我救命时，也是这副嘴脸？",
                       "林辰：他竞然敢这么说话。")
     f, w, _ = validate(t4)
     if not any("E22" in x for x in w):
         print("FAIL self-test: 错别字应报 E22:", [x for x in w if "E22" in x]); ok = 0
-    # T5: 行动型放宽（对白少但结构全）——去掉【冲突形态】标记应报 E9/E21，加上不应报
     _act_body = ("[场景]：内景·楼道·夜\n[人物]：陈默、张叔\n"
                  + "".join(f"△ 准备动作{i}：他把加固钢板一块块拧上去，火星四溅，处境又安全一层。\n" for i in range(14))
                  + "张叔（嗤笑）：你这是要把整栋楼拆了重盖一遍啊？\n△ 陈默没抬头，继续拧螺丝。\n"
@@ -921,7 +904,6 @@ def self_test():
         print("FAIL self-test: 无形态标记的对白少年应报 E9/E21:", w2); ok = 0
     if any("E9" in x for x in w1) or any("E21" in x for x in w1):
         print("FAIL self-test: 行动型不应报 E9/E21:", w1); ok = 0
-    # T6: 行动型动作拍权重（同一稿：标 150s，对话型应报 E16、行动型不应报）
     _t6 = ("第【1】集\n【质疑者配角】：张叔\n【本集时长】：150 秒\n[场景]：内景·楼顶\n[人物]：陈默、张叔\n"
            + "".join(f"△ 准备动作{i}：他把钢板一块块拧上去，火光四溅，处境又安全一层。\n" for i in range(20))
            + "".join(f"陈默：第{i}句台词，字数大概就是二十个字左右。\n" for i in range(20)))
@@ -931,7 +913,6 @@ def self_test():
         print("FAIL self-test: 对话型台词少应报 E16"); ok = 0
     if any("E16" in x for x in _fb):
         print("FAIL self-test: 行动型不应报 E16（动作拍权重）×2.5:", [x for x in _fb if "E16" in x]); ok = 0
-    # T7: 混合型中间档（6 行对白 / 低对白占比：对话型报 E9+E21，混合型不报）
     _t7 = ("第【1】集\n【质疑者配角】：张叔\n【本集时长】：150 秒\n[场景]：内景·楼顶\n[人物]：陈默、张叔\n"
            + "".join(f"△ 准备动作{i}：他把加固钢板一块块拧上去，火星四溅，处境又安全一层。\n" for i in range(14))
            + "".join(f"陈默：第{i}句话，说完我就接着干活。\n" for i in range(6)))
@@ -941,7 +922,6 @@ def self_test():
         print("FAIL self-test: 对话型应报 E9/E21:", _w7n); ok = 0
     if any("E9" in x for x in _w7m) or any("E21" in x for x in _w7m):
         print("FAIL self-test: 混合型不应报 E9/E21:", _w7m); ok = 0
-    # T8: N13 豁免（行动型/混合型不报堆动作）
     _t8 = ("第【1】集\n【质疑者配角】：张叔\n[场景]：内景\n[人物]：陈默、张叔\n"
            + "".join("△ 他抬手。\n" for _ in range(14))
            + "张叔：你疯了。\n陈默：嗯。\n张叔：真的疯了。\n陈默：嗯。\n"
@@ -950,7 +930,6 @@ def self_test():
         print("FAIL self-test: 对话型堆动作应报 N13"); ok = 0
     if any("N13" in x for x in collect_notes("【冲突形态】：行动型\n" + _t8, "long")):
         print("FAIL self-test: 行动型不应报 N13（堆动作豁免）"); ok = 0
-    # T9: ②行动型的「反常动作」开场不应被 E4 误杀（对话型同文应报 E4）
     _t9 = ("第【1】集\n【本集时长】：150 秒\n[场景]：内景·楼道\n[人物]：陈默、张叔\n"
            "△ 他把三十箱矿泉水一箱箱搬上楼，垛在门口。\n"
            + "陈默：嗯。\n张叔：嗯。\n陈默：嗯。\n张叔：嗯。\n陈默：嗯。\n张叔：嗯。\n陈默：嗯。\n张叔：嗯。\n"
@@ -962,8 +941,7 @@ def self_test():
     if any("E4" in x for x in _f9b):
         print("FAIL self-test: 行动型反常动作开场不应报 E4:", [x for x in _f9b if "E4" in x]); ok = 0
 
-    # ---- E19 15秒窗口台词密度（v4.0·WARN 生产端建议）回归 ----
-    # E19: 连续对白块 >95 字 → WARN（△动作行/独白/旁白即断点，重置累积）
+    # ---- E19 15秒窗口台词密度回归 ----
     e19 = ("第【1】集\n[场景]：内景·堂·日\n[人物]：甲、乙\n△ 巴掌扇到半空被反手抓住。\n"
            + "".join(f"甲：第{i}轮连续攻防台词，把新证据新代价和施压一步一步讲透抬价压上。\n" for i in range(6))
            + "乙：我知道了。\n"
@@ -971,7 +949,6 @@ def self_test():
     f, w, _ = validate(e19)
     if not any("E19" in x for x in w):
         print("FAIL self-test: 连续对白超95字应报 E19 WARN:", w); ok = 0
-    # E19 反向：连续对白之间插 △动作行断点，每块均 <95 字 → 不应报 E19
     e19_ok = ("第【1】集\n[场景]：内景·堂·日\n[人物]：甲、乙\n△ 巴掌扇到半空被反手抓住。\n"
               "甲：第一轮连续攻防台词，把新证据新代价一步一步讲透抬价。\n△ 甲反手摁住对方手腕。\n"
               "乙：第二轮连续攻防台词，把新代价和施压一步一步讲透抬价。\n△ 乙后退半步。\n"
@@ -981,8 +958,7 @@ def self_test():
     if any("E19" in x for x in w):
         print("FAIL self-test: 带动作行断点的对白不应报 E19:", w); ok = 0
 
-    # ---- E20 动作单段≤40字 / E21 对白动作黄金比（v4.2·WARN 软约束）回归 ----
-    # E20 触发：单条 △ 镜头净字数 >40 → WARN
+    # ---- E20 动作单段≤40字 / E21 对白动作黄金比回归 ----
     e20 = ("第【1】集\n[场景]：内景·堂·日\n[人物]：甲、乙\n"
            "△ 特写：陈峰死死盯着桌上令牌上的九龙图腾，双腿剧烈发抖手机疯狂震动不停，来电显示父亲两个字整个人瘫软在地上再也站不起来。\n"
            "甲：跪下。\n乙：你敢。\n甲：闭嘴。\n乙：罢了。\n"
@@ -990,7 +966,6 @@ def self_test():
     f, w, _ = validate(e20)
     if not any(x.startswith("E20 ") for x in w):
         print("FAIL self-test: 单条△动作>40字应报 E20 WARN:", w); ok = 0
-    # E20/E21 双反向：△ 镜头均 ≤40 字 且 对白/动作比落在 25%~70% → 两者都不应报
     bal_ok = ("第【1】集\n[场景]：内景·堂·日\n[人物]：甲、乙\n△ 巴掌扇到半空被反手抓住。\n"
               "甲：你今天必须把这笔账给我算清楚。\n△ 甲反手摁住对方手腕。\n"
               "乙：我没什么好跟你算清楚的。\n△ 乙后退半步。\n"
@@ -1001,14 +976,12 @@ def self_test():
         print("FAIL self-test: 短△镜头不应报 E20:", w); ok = 0
     if any(x.startswith("E21 ") for x in w):
         print("FAIL self-test: 均衡对白动作比不应报 E21:", w); ok = 0
-    # E21 触发：对白占比 >70% → WARN
     e21_high = ("第【1】集\n[场景]：内景·堂·日\n[人物]：甲、乙\n△ 拍桌。\n"
                 + "".join(f"甲：第{i}轮唇枪舌战，抛出新证据新代价并步步抬价施压。\n" for i in range(8))
                 + "【本集断章卡点】：满堂死寂。（黑屏：下滑解锁）\n")
     f, w, _ = validate(e21_high)
     if not any(x.startswith("E21 ") and ">70%" in x for x in w):
         print("FAIL self-test: 对白占比>70%应报 E21 WARN:", w); ok = 0
-    # E21 反向：对白占比 <25% → WARN（动作碾压、缺唇枪舌战）
     e21_low = ("第【1】集\n[场景]：内景·堂·日\n[人物]：甲、乙\n"
                + "".join(f"△ 第{i}拍具体物理动作，镜头可拍的行为事件推进冲突再升级。\n" for i in range(8))
                + "甲：来。\n"
@@ -1016,6 +989,52 @@ def self_test():
     f, w, _ = validate(e21_low)
     if not any(x.startswith("E21 ") and "<25%" in x for x in w):
         print("FAIL self-test: 对白占比<25%应报 E21 WARN:", w); ok = 0
+
+    # ---- v4.9 新增：E24 干聊断层 / E25 谜语黑话 / E26 无效微动作回归 ----
+    # T10: 连续 7 行对白无 △ 支撑（哪怕总字数 <95 不触发 E19）→ 必须触发 E24 WARN
+    e24_dry = ("第【1】集\n[场景]：内景·堂·日\n[人物]：甲、乙\n△ 巴掌扇到半空被反手抓住。\n"
+               "甲（厉声）：把钱交出来！\n乙（冷笑）：没钱！\n甲：你找死！\n乙：你敢动我？\n"
+               "甲：你看我敢不敢！\n乙：有本事来啊！\n甲：今天饶不了你！\n"
+               "【本集断章卡点】：满堂死寂。（黑屏：下滑解锁）\n")
+    _, w24, _ = validate(e24_dry)
+    if not any(x.startswith("E24 ") for x in w24):
+        print("FAIL self-test: 连续7行对白无△应报 E24 WARN:", w24); ok = 0
+    if any(x.startswith("E24 ") for x in validate(GOOD)[1]):
+        print("FAIL self-test: GOOD 样例不应报 E24"); ok = 0
+
+    # T11: 台词含未翻译晦涩黑话 → 触发 E25 WARN
+    e25_jargon = GOOD.replace("三年了，你陈家欠的账，一笔一笔都在这儿。", "你的气运锚点已经触发因果闭环。")
+    _, w25, _ = validate(e25_jargon)
+    if not any(x.startswith("E25 ") for x in w25):
+        print("FAIL self-test: 含晦涩黑话应报 E25 WARN:", w25); ok = 0
+
+    # T12: △ 仅含无效微动作 → 触发 E26 WARN
+    e26_weak = GOOD.replace("△ 陈峰的膝盖一软，扶着茶几才没跪下去。", "△ 陈峰眼神微动。")
+    _, w26, _ = validate(e26_weak)
+    if not any(x.startswith("E26 ") for x in w26):
+        print("FAIL self-test: 无效微动作应报 E26 WARN:", w26); ok = 0
+
+    # T13(v4.9.1): 弱微动作被凑长氛围描写包住（净字数>14）也须触发 E26
+    e26_pad = GOOD.replace("△ 陈峰的膝盖一软，扶着茶几才没跪下去。",
+                           "△ 陈峰眼神微动，包厢内灯光昏黄黯淡，众人屏息凝神不敢出声。")
+    _, w26b, _ = validate(e26_pad)
+    if not any(x.startswith("E26 ") for x in w26b):
+        print("FAIL self-test: 长描写包住眼神微动应报 E26:", w26b); ok = 0
+
+    # T14(v4.9.1): 弱神态+强物证动作组合 △ 不应误报 E26
+    e26_ok = GOOD.replace("△ 陈峰的膝盖一软，扶着茶几才没跪下去。",
+                          "△ 陈峰微微一怔，手里的茶杯啪地砸在地上碎成三瓣。")
+    _, w26c, _ = validate(e26_ok)
+    if any(x.startswith("E26 ") for x in w26c):
+        print("FAIL self-test: 弱神态+强物证组合不应报 E26:", w26c); ok = 0
+
+    # T15(v4.9.1): 【本集时长】不带"秒"字也应触发 E16（旧版会整条绕过校验）
+    _t15 = long_good.replace("【本集时长】：180 秒", "【本集时长】：180").replace(
+        "".join(f"林辰：第{i}句攻防台词，抛出新信息并抬价施压。\n" for i in range(48)),
+        "".join(f"林辰：第{i}句攻防台词，抛出新信息并抬价施压。\n" for i in range(16)))
+    f, _, _ = validate(_t15)
+    if not any("E16" in x for x in f):
+        print("FAIL self-test: 不带'秒'字的时长标注应报 E16:", f); ok = 0
 
     print("[+] self-test PASSED" if ok else "[-] self-test FAILED")
     return 0 if ok else 1
@@ -1063,9 +1082,8 @@ def main():
         return e.code or 2
     if not path:
         print(__doc__); return 2
-    # 友好处理缺文件/编码错误（避免裸 traceback）
     try:
-        text = open(path, encoding="utf-8").read()
+        text = open(path, encoding="utf-8-sig").read()
     except FileNotFoundError:
         print(f"[-] 找不到剧本文件: {path}"); return 2
     except IsADirectoryError:
@@ -1076,12 +1094,12 @@ def main():
         print(f"[-] 无法读取剧本文件: {path}（{e}）"); return 2
     for p in prevs:
         try:
-            open(p, encoding="utf-8").read()
+            open(p, encoding="utf-8-sig").read()
         except FileNotFoundError:
             print(f"[-] 找不到前集文件: {p}"); return 2
         except (UnicodeDecodeError, OSError):
             print(f"[-] 无法读取前集文件: {p}"); return 2
-    prev_texts = [open(p, encoding="utf-8").read() for p in prevs]
+    prev_texts = [open(p, encoding="utf-8-sig").read() for p in prevs]
     profile = resolve_profile(text, profile)
     fails, warns, nc = validate(text, prev_texts, profile)
     notes = collect_notes(text, profile)
