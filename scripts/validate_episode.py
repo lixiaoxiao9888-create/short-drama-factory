@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""short-drama-factory v4.9 单集剧本机检（分档）
+"""short-drama-factory v5.1 单集剧本机检（分档）
 
 用法:
     python validate_episode.py <单集剧本.md> [--format auto|standard|long|manju] [--prev 前集.md ...]
@@ -16,7 +16,7 @@
     E1  正文体量【参考带】= 对白+动作行+断章画面（不计【】字段行/[场景][人物]）
           参考带按【本集时长】动态推导（≈5.0~7.6 字/秒·含动作）；无时长则用档位典型
           WARN(超参考带，不拦) / FAIL(低于参考带 0.5 倍 = 极端空稿)
-    E2  单句台词(常规 12~18 字 / 爆发金句 8~12) 上限 25 字(超长告警,非拦截)   WARN(逐句 >25)
+    E2  单句台词(常规 12~18 字 / 爆发金句 8~16) 上限 25 字(超长告警,非拦截)   WARN(逐句 >25)
           注: 独白/旁白不按此判(改按 E12 的 os_len/vo_len)
     E3  场景数 <=2 ([场景] 标记计数)                FAIL(>2)
     E4  黄金前3秒: 首个内容行含冲突信号词（②行动型可用「反常动作」词）      FAIL(无)
@@ -32,13 +32,13 @@
     E13 独白/旁白连排: 两条相邻, 或紧贴断章收尾            FAIL
     E14 独白里写交代设定 / 抽象情绪                       WARN
     E15 前 3 秒出现独白/旁白(应为场内冲突)                FAIL
-    E16 时长虚标(v4.9.1·全档): 【本集时长】> 台词量可拆时长×1.20      FAIL
-          （v4.9.1: 时长带不带"秒"字均可识别；旧版"：180"无"秒"字会绕过校验）
+    E16 时长虚标(v4.9.1·全档; 凡标注【本集时长】即校验, 带不带「秒」字均可): 标注>可拆时长×1.20  FAIL
           可拆时长 = 纯台词字数÷4.5(参考语速) + 动作行数×动作拍权重 + 5s 留白；动作行字数不参与时长换算
     E17 长档降级(v3.4.2·long 档): 【本集时长】< 150 秒(长档下限)          FAIL
-    E18 对白语气供给(v3.4.3·对接导演端 V6.9.3 C16 / model-adapters §5.2):
+    E18 对白语气供给(v3.4.3/v5.0·对接导演端 V6.9.3 C16 / model-adapters §5.2):
         E18a 神态短语含空泛情绪结果词(开心/愤怒等)                       WARN
         E18b 全篇对白行无一处语气词(极端态: 嗓音/发声方式信息整集缺失)    WARN
+        E18c 神态短语含网文常态套话(眼神微冷/淡淡开口/嘴角勾起等 · v5.0)  WARN
     E19 15秒窗口台词密度(v4.0·WARN 生产端建议): 连续对白块 >95 字       WARN
     E20 动作单段≤40字(v4.2·WARN 软约束): 单条 △ 镜头净字数 >40 字      WARN
     E21 对白/动作字数黄金比 25%~70%(v4.2·WARN): 对白/(对白+△动作)        WARN
@@ -48,9 +48,10 @@
           解决"没有画面支撑、站桩广播剧"痛点；建议每 2~4 句对白穿插一条强视觉 △
     E25 谜语黑话检测(v4.9·WARN 大白话直给): 对白含未翻译晦涩黑话/谜语词  WARN
           解决"说的话想半天才能明白什么意思"痛点；专名与黑话当句须翻译为钱/命/地位等大白话后果
-    E26 无效微动作检测(v4.9·WARN 强视觉锚点): △ 含拍不出的微动作/心理词且无强动作标记 WARN
+    E26 无效微动作检测(v4.9·WARN 强视觉锚点): △ 仅含拍不出的微动作/心理词 WARN
           封杀"△ 眼神微动 / 微微一怔 / 推了半寸"等假动作充数，要求落到三大视觉锚点
-          （v4.9.1: 弱微动作被凑长氛围描写包住也须告警；含物证砸碎/肢体对抗等强动作的组合 △ 不误报）
+    E27 机械镜头标签堆砌检测(v5.0·WARN 反机械模板): 单集刷屏【慢镜头】/【特写】 WARN
+          防止每集机械贴【慢镜头】(>=2处)或高频刷屏【特写】(>=6处)充当高潮
 
 保护性反例 (NOTE 级 —— 提示"你可能过度修正了", 不要求修改; 详见 references/protective-counterexamples.md):
     N12 碎句化: 连续 >=5 行对白且每行净字数 <=4      NOTE(疑为绕开 E2 而剁碎完整句)
@@ -75,7 +76,7 @@ DLG_TARGET = {90: 400, 120: 540, 150: 670, 180: 800, 195: 870}   # 各目标时�
 WIN15_MAX_CHARS = 95                 # E19: 任何连续对白块净字数上限(字)，≈15秒×6.33字/s触顶
 DRY_DLG_RUN_MAX = 6                  # E24 (v4.9): 连续纯对白无 △ 动作行的最大行数上限（>6 行即告警干聊断层）
 
-# ---- 对白语气供给（v3.4.3 · 对接导演端 V6.9.3 C16 / model-adapters §5.2 对白三要素）----
+# ---- 对白语气供给（v3.4.3 / v5.0 · 对接导演端 V6.9.3 C16 / model-adapters §5.2 对白三要素）----
 TONE_WORDS = ("嘶哑", "沙哑", "气音", "颤声", "发颤", "哭腔", "哽咽", "破音", "气若游丝",
               "有气无力", "低语", "轻声", "柔声", "厉声", "厉喝", "嘶吼", "低吼", "怒喝",
               "咆哮", "一字一顿", "一字一句", "拖长音", "阴阳怪气", "讥诮", "嗤笑", "冷笑",
@@ -83,6 +84,11 @@ TONE_WORDS = ("嘶哑", "沙哑", "气音", "颤声", "发颤", "哭腔", "哽�
               "低声", "高声", "尖声", "声音极低", "声音发", "嗓音", "语气", "颤", "哑",
               "低声道", "冷声道", "字字")
 E18_VAGUE_WORDS = ("开心", "难过", "生气", "愤怒", "悲伤", "伤心", "高兴", "邪魅", "伤感", "激动")
+E18C_CANNED_PAREN_WORDS = (
+    "眼神微冷", "眸光微冷", "目光微冷", "眼神微眯", "淡淡开口", "缓缓开口",
+    "薄唇轻启", "朱唇轻启", "嘴角勾起", "勾起一抹", "眼中闪过", "眸中闪过",
+    "神色淡漠", "面无表情"
+)
 
 # ---- E22 台词用语/错别字（常用误用对照，WARN 级：只提示、不拦）----
 TYPO_LITERALS = (
@@ -115,9 +121,9 @@ WEAK_MICRO_ACTIONS = (
     "若有所思", "陷入沉思", "嘴角微扬", "嘴角微勾", "推了半寸", "移了半寸"
 )
 
-# 强动作标记（v4.9.1 新增）：△ 行内命中即视为有可见物理结果/物证对抗，E26 放行。
-# 用于修复"弱微动作被凑长氛围描写包住即绕过检测"的盲区：命中弱词但行内无任何
-# 强动作标记时，无论 △ 行长短都告警（组合△"微微一怔+茶杯砸碎"不误报）。
+# 强动作标记（v4.9.1 修复回植）：△ 行内命中即视为有可见物理结果/物证对抗，E26 放行。
+# 修复"弱微动作被凑长氛围描写包住即绕过检测"的盲区：命中弱词但行内无任一强标记时，
+# 无论 △ 行长短都告警；组合 △（微微一怔 + 茶杯砸碎）不误报。
 STRONG_ACT_MARKERS = (
     "砸", "摔", "甩", "拍在", "拍桌", "拍案", "重拍", "踹", "踢", "扇",
     "掀", "撞", "掐", "抓住", "拽", "扯", "泼", "烧", "点燃", "撕",
@@ -127,6 +133,12 @@ STRONG_ACT_MARKERS = (
     "踉跄", "后退", "转身", "起身", "站起", "碎", "裂", "滚落", "滑落",
     "溅", "冒出", "涨红", "攥", "捏", "摁", "特写", "推给", "滑到"
 )
+
+
+# ---- v5.1 视听可拍性四门禁（E37~E40）----
+UNSHOOTABLE_NEG_ACTIONS = ("非但没跪", "非但没退", "看都没看一眼", "连眼角都没扫", "连眼皮都没抬一下")
+E39_IGNORE_WORDS = ("意思", "东西", "时候", "事情", "地方", "情况", "理由", "办法", "玩意")
+SCENE_TRANSITION_VERBS = ("走进", "推门", "推开", "来到", "赶到", "冲进", "转身", "片刻后", "次日", "当晚", "随后", "离开")
 
 # ---- 独白 / 旁白（非说话的叙述通道）----
 VO_OS_TAGS = ("内心独白", "独白", "心声")            # 只有观众听见的说话人心声
@@ -147,7 +159,7 @@ OPEN_BAN_WORDS = ["早晨起床", "起床", "拉窗帘", "太阳升起", "醒过
 
 CONFLICT_SIGNALS = ["！?", "！", "枪", "刀", "巴掌", "扔", "砸", "吼",
                     "逼", "跪", "撕", "拍在", "顶在", "推", "踹", "骂", "羞辱", "退婚",
-                    "病危", "签字", "死", "滚", "住手", "救", "断裂", "炸", "烧", "血"]
+                    "病危", "签字", "死", "滚", "住手", "救", "断裂", "炸", "烧", "血", "休书"]
 ACTION_SIGNALS = ["囤", "搬", "扛", "抬", "焊", "封", "锁", "插销", "装箱", "码",
                   "发电机", "钢板", "密封", "加固", "抢购", "屯", "备货", "储", "水桶",
                   "断电", "停水", "挖", "砌", "钻", "拧", "钉", "背", "贴", "算"]
@@ -246,7 +258,7 @@ def resolve_profile(text, profile="auto"):
 
 def net_band(text, profile):
     """正文体量【参考带】。优先按剧本自报的【本集时长】动态推导，并按冲突形态微调系数"""
-    m = re.search(r"【本集时长】[：:]\s*(\d+)", text)
+    m = re.search(r"【本集时长】[：:]?\s*(\d+)", text)
     if m:
         t = int(m.group(1))
         if t > 0:
@@ -267,7 +279,7 @@ def scene_count(text):
 def first_content_lines(text, n=3):
     out = []
     for line in text.splitlines():
-        s = line.strip().lstrip("\ufeff").strip()  # v4.9.1: 剥离 BOM，防其挤占前3秒检测窗口
+        s = line.strip().lstrip("\ufeff").strip()  # v4.9.1 修复回植: 剥离 BOM，防其挤占前3秒检测窗口
         if not s or s.startswith(("#", ">", "第", "【", "[")):
             continue
         out.append(s)
@@ -361,7 +373,7 @@ def validate(text, prev_texts=(), profile="auto"):
         if _q and _q.group(1).strip() in ("", "无", "无。", "—", "-"):
             fails.append("E23 行动型缺【质疑者配角】（对手位缺失：准备×质疑 必须有质疑者；无对手位＝行动流水账）")
 
-    # ---- 对白语气供给（E18 · v3.4.3）----
+    # ---- 对白语气供给（E18a/b/c · v3.4.3 / v5.0）----
     if my_lines:
         for l in text.splitlines():
             p = _paren_of(l)
@@ -372,6 +384,16 @@ def validate(text, prev_texts=(), profile="auto"):
                 warns.append(f"E18a 神态短语含空泛情绪词「{'/'.join(v)}」：{p}——"
                              "改为可执行的语气/画面词（如 压着怒·低语 ／ 指节捏白），"
                              "规格见 templates/episode-format.md §四")
+                break
+        for l in text.splitlines():
+            p = _paren_of(l)
+            if not p:
+                continue
+            canned = [w for w in E18C_CANNED_PAREN_WORDS if w in p]
+            if canned:
+                warns.append(f"E18c 神态短语含网文常态套话「{'/'.join(canned)}」：{p}——"
+                             "请改为『具体手部/身体小动作｜发声方式』（如 掸袖口｜冷声 / 拍桌｜厉声），"
+                             "见 references/dialogue-doctor-anti-ai.md §三")
                 break
         tone_lines = sum(1 for l in text.splitlines()
                          if _is_dialogue(l) and any(w in _paren_of(l) for w in TONE_WORDS))
@@ -437,10 +459,8 @@ def validate(text, prev_texts=(), profile="auto"):
             break
 
     # E16 时长虚标 / E17 长档降级
-    # v4.9.1 修复：①【本集时长】带不带「秒」字均可识别（旧版写"：180"会整条绕过校验）；
-    # ②E16 扩为全档生效——任何档位只要标注了【本集时长】就按 4.5 字/s 口径核对防虚标；
-    # E17（<150s 拦降级）仍仅长档生效。
-    m_dur = re.search(r"【本集时长】[：:]?\s*(\d{2,4})(?:\s*秒)?", text)
+    # v4.9.1 修复回植：正则「秒」字可选（写【本集时长】180 也能识别），E16 扩为全档生效
+    m_dur = re.search(r"【本集时长】[:：]?\s*(\d{2,4})(?:\s*秒)?", text)
     if m_dur:
         dlg_chars = 0
         action_lines = 0
@@ -509,19 +529,25 @@ def validate(text, prev_texts=(), profile="auto"):
         warns.append(f"E24 干聊断层：连续 {max_dry_run} 行对白无 △ 动作支撑（上限 {DRY_DLG_RUN_MAX} 行），"
                      "画面易沦为站桩广播剧——建议每 2~4 句对白穿插一条强视觉 △（物理结果/身份反差/物证对抗）")
 
-    # ---- E20 动作单段≤40字 + E21 对白/动作黄金比 25%~70% + E26 无效微动作检测（v4.9 新增）----
+    # ---- E20 动作单段≤40字 + E21 对白/动作黄金比 25%~70% + E26 无效微动作 + E27 机械镜头标签堆砌 ----
     act_total = 0
     dlg_total = 0
     weak_act_hit = None
+    slowmo_cnt = 0
+    closeup_tag_cnt = 0
     for line in text.splitlines():
         s = line.strip()
         if s.startswith("△"):
             body = re.sub(r"^△\s*", "", s)
+            if "【慢镜头】" in body or "[慢镜头]" in body:
+                slowmo_cnt += 1
+            if "【特写】" in body or "[特写]" in body:
+                closeup_tag_cnt += 1
             clean_act = re.sub(r"[\s，。！？；：、…—\-·“”\"‘’（）()《》!?.]", "", body)
             n = len(clean_act)
             if n > 40:
                 warns.append(f"E20 动作单段{n}字(>40)，建议拆为两个△镜头")
-            # v4.9.1 修复：弱微动作即使被凑长的氛围描写包住（净字数>14）也须告警；
+            # v4.9.1 修复回植：弱微动作即使被凑长的氛围描写包住（净字数>14）也须告警；
             # 但行内含强动作标记（物证砸碎/肢体对抗等）的组合 △ 不误报
             if weak_act_hit is None:
                 for w in WEAK_MICRO_ACTIONS:
@@ -537,6 +563,9 @@ def validate(text, prev_texts=(), profile="auto"):
     if weak_act_hit is not None:
         warns.append(f"E26 无效微动作：『△ {weak_act_hit}』镜头缺乏可见物理结果或物证对抗——"
                      "请改为三大视觉锚点（物理破坏/身份反差忙活/物证亮牌），见 references/craft-quality-layer.md §四·补")
+    if slowmo_cnt >= 2 or closeup_tag_cnt >= 6:
+        warns.append(f"E27 机械镜头标签堆砌：本集含 {slowmo_cnt} 处【慢镜头】、{closeup_tag_cnt} 处【特写】标签——"
+                     "文字剧本严禁靠机械刷屏分镜标签充当戏剧高潮，请直接写出可见的物理结果与动作张力")
 
     denom = dlg_total + act_total
     if denom > 0:
@@ -569,6 +598,49 @@ def validate(text, prev_texts=(), profile="auto"):
             if _jw in _s and _jw not in _jargon_hit:
                 _jargon_hit.add(_jw)
                 warns.append(f"E25 谜语黑话告警：台词含晦涩词『{_jw}』——须当句用大白话直给翻译为具体利害（多少钱/谁死谁活/什么物证）")
+
+
+    # ---- v5.1 视听可拍性四门禁（E37~E40）----
+    seen_before = ""
+    scene_blocks = []
+    cur_sc = None
+    cur_first_act = None
+    for _raw in text.splitlines():
+        _s = _raw.strip()
+        if not _s:
+            continue
+        if _s.startswith(("[场景]", "【场景】")):
+            if cur_sc is not None:
+                scene_blocks.append((cur_sc, cur_first_act or ""))
+            cur_sc = re.sub(r"^(?:\[场景\]|【场景】)\s*[:：]?\s*", "", _s)
+            cur_first_act = None
+            continue
+        if _s.startswith("△"):
+            _body = re.sub(r"^△\s*", "", _s)
+            if cur_sc is not None and cur_first_act is None:
+                cur_first_act = _body
+            for _nw in UNSHOOTABLE_NEG_ACTIONS:
+                if _nw in _body:
+                    fails.append(f"E37 否定式伪动作「{_nw}」：无法转为视听画面，请改为正向可见动作")
+                    break
+            if "接过" in _body and not re.search(r"从[^，。！？\n]{1,12}(?:手里|手中|手上)接过|接过[^，。！？\n]{1,10}递来", _body):
+                warns.append(f"E38 道具交接缺来源：『△ {_body[:22]}』请写明从哪位在场角色手里接过")
+        else:
+            _d = _is_dialogue(_s)
+            if _d is not None:
+                _qm = re.search(r"什么([\u4e00-\u9fa5]{2,4})[？?]", _d)
+                if _qm:
+                    _kw = _qm.group(1)
+                    if _kw not in E39_IGNORE_WORDS and _kw not in seen_before:
+                        warns.append(f"E39 疑似未提先知（幽灵反问）：台词突然反问「什么{_kw}？」，请确认前文已铺垫该专名")
+        seen_before += _s + "\n"
+    if cur_sc is not None:
+        scene_blocks.append((cur_sc, cur_first_act or ""))
+    for _i in range(len(scene_blocks) - 1):
+        _s1, _ = scene_blocks[_i]
+        _s2, _a2 = scene_blocks[_i + 1]
+        if _s1 == _s2 and not any(v in _a2 for v in SCENE_TRANSITION_VERBS):
+            warns.append(f"E40 同空间假切场：相邻两场均为「{_s2}」且新场首条△缺乏位移或时间过渡词")
 
     return fails, warns, nc
 
@@ -867,7 +939,7 @@ def self_test():
     if not any("E14" in x for x in w):
         print("FAIL self-test: 独白交代设定应报 E14"); ok = 0
 
-    # ---- 对白语气供给（E18 · v3.4.3）回归 ----
+    # ---- 对白语气供给（E18 · v3.4.3 / v5.0）回归 ----
     f, w, _ = validate(GOOD.replace("苏清雪（冷漠）：", "苏清雪（生气）："))
     if not any("E18a" in x for x in w):
         print("FAIL self-test: 神态短语空泛情绪词应报 E18a:", [x for x in w if "E18" in x]); ok = 0
@@ -991,7 +1063,6 @@ def self_test():
         print("FAIL self-test: 对白占比<25%应报 E21 WARN:", w); ok = 0
 
     # ---- v4.9 新增：E24 干聊断层 / E25 谜语黑话 / E26 无效微动作回归 ----
-    # T10: 连续 7 行对白无 △ 支撑（哪怕总字数 <95 不触发 E19）→ 必须触发 E24 WARN
     e24_dry = ("第【1】集\n[场景]：内景·堂·日\n[人物]：甲、乙\n△ 巴掌扇到半空被反手抓住。\n"
                "甲（厉声）：把钱交出来！\n乙（冷笑）：没钱！\n甲：你找死！\n乙：你敢动我？\n"
                "甲：你看我敢不敢！\n乙：有本事来啊！\n甲：今天饶不了你！\n"
@@ -1002,39 +1073,49 @@ def self_test():
     if any(x.startswith("E24 ") for x in validate(GOOD)[1]):
         print("FAIL self-test: GOOD 样例不应报 E24"); ok = 0
 
-    # T11: 台词含未翻译晦涩黑话 → 触发 E25 WARN
     e25_jargon = GOOD.replace("三年了，你陈家欠的账，一笔一笔都在这儿。", "你的气运锚点已经触发因果闭环。")
     _, w25, _ = validate(e25_jargon)
     if not any(x.startswith("E25 ") for x in w25):
         print("FAIL self-test: 含晦涩黑话应报 E25 WARN:", w25); ok = 0
 
-    # T12: △ 仅含无效微动作 → 触发 E26 WARN
     e26_weak = GOOD.replace("△ 陈峰的膝盖一软，扶着茶几才没跪下去。", "△ 陈峰眼神微动。")
     _, w26, _ = validate(e26_weak)
     if not any(x.startswith("E26 ") for x in w26):
         print("FAIL self-test: 无效微动作应报 E26 WARN:", w26); ok = 0
 
-    # T13(v4.9.1): 弱微动作被凑长氛围描写包住（净字数>14）也须触发 E26
-    e26_pad = GOOD.replace("△ 陈峰的膝盖一软，扶着茶几才没跪下去。",
-                           "△ 陈峰眼神微动，包厢内灯光昏黄黯淡，众人屏息凝神不敢出声。")
-    _, w26b, _ = validate(e26_pad)
-    if not any(x.startswith("E26 ") for x in w26b):
-        print("FAIL self-test: 长描写包住眼神微动应报 E26:", w26b); ok = 0
+    # ---- v5.0 新增：E18c 括号常态套话 / E27 机械镜头标签堆砌回归 ----
+    e18c_canned = GOOD.replace("苏清雪（冷漠）：", "苏清雪（眼神微冷）：")
+    _, w18c, _ = validate(e18c_canned)
+    if not any(x.startswith("E18c ") for x in w18c):
+        print("FAIL self-test: 括号含眼神微冷应报 E18c WARN:", w18c); ok = 0
 
-    # T14(v4.9.1): 弱神态+强物证动作组合 △ 不应误报 E26
-    e26_ok = GOOD.replace("△ 陈峰的膝盖一软，扶着茶几才没跪下去。",
-                          "△ 陈峰微微一怔，手里的茶杯啪地砸在地上碎成三瓣。")
-    _, w26c, _ = validate(e26_ok)
-    if any(x.startswith("E26 ") for x in w26c):
-        print("FAIL self-test: 弱神态+强物证组合不应报 E26:", w26c); ok = 0
+    e27_cam = GOOD.replace("△ 玻璃碎裂，酒水横流", "△ 【慢镜头】玻璃碎裂，酒水横流").replace(
+        "△ 陈峰的膝盖一软", "△ 【慢镜头】陈峰的膝盖一软")
+    _, w27, _ = validate(e27_cam)
+    if not any(x.startswith("E27 ") for x in w27):
+        print("FAIL self-test: 单集>=2处【慢镜头】应报 E27 WARN:", w27); ok = 0
 
-    # T15(v4.9.1): 【本集时长】不带"秒"字也应触发 E16（旧版会整条绕过校验）
-    _t15 = long_good.replace("【本集时长】：180 秒", "【本集时长】：180").replace(
-        "".join(f"林辰：第{i}句攻防台词，抛出新信息并抬价施压。\n" for i in range(48)),
-        "".join(f"林辰：第{i}句攻防台词，抛出新信息并抬价施压。\n" for i in range(16)))
-    f, _, _ = validate(_t15)
-    if not any("E16" in x for x in f):
-        print("FAIL self-test: 不带'秒'字的时长标注应报 E16:", f); ok = 0
+
+    # ---- v5.1 新增：E37~E40 视听可拍性四门禁回归 ----
+    e37_bad = GOOD.replace("△ 陈峰的膝盖一软，扶着茶几才没跪下去。", "△ 林辰非但没跪，反而看都没看一眼。")
+    f37, _, _ = validate(e37_bad)
+    if not any(x.startswith("E37 ") for x in f37):
+        print("FAIL self-test: 否定式伪动作应报 E37 FAIL:", f37); ok = 0
+
+    e38_bad = GOOD.replace("△ 陈峰的膝盖一软，扶着茶几才没跪下去。", "△ 林辰接过密信塞进怀里。")
+    _, w38, _ = validate(e38_bad)
+    if not any(x.startswith("E38 ") for x in w38):
+        print("FAIL self-test: 无来源接过道具应报 E38 WARN:", w38); ok = 0
+
+    e39_bad = GOOD.replace("林辰：赔罪的话，留着跟我的律师说。", "林辰：什么赤霄玉佩？你疯了吧！")
+    _, w39, _ = validate(e39_bad)
+    if not any(x.startswith("E39 ") for x in w39):
+        print("FAIL self-test: 未提先知反问应报 E39 WARN:", w39); ok = 0
+
+    e40_bad = GOOD.replace("【本集断章卡点】：", "[场景]：内景·顶级私人会所·夜\n△ 陈峰站在原地发抖。\n【本集断章卡点】：")
+    _, w40, _ = validate(e40_bad)
+    if not any(x.startswith("E40 ") for x in w40):
+        print("FAIL self-test: 同空间假切场应报 E40 WARN:", w40); ok = 0
 
     print("[+] self-test PASSED" if ok else "[-] self-test FAILED")
     return 0 if ok else 1

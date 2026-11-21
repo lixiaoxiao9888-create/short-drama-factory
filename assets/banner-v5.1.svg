@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="320" viewBox="0 0 1280 320" role="img" aria-label="Short-Drama Factory v4.9">
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="320" viewBox="0 0 1280 320" role="img" aria-label="Short-Drama Factory v5.1">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#0a0d14"/>
@@ -46,7 +46,7 @@
   <text x="104" y="126" font-family="Segoe UI, Arial, Helvetica, sans-serif" font-size="60" font-weight="800" fill="#ffffff" letter-spacing="1.5">SHORT-DRAMA FACTORY</text>
 
   <!-- 中文副标题（金色） -->
-  <text x="106" y="176" font-family="Microsoft YaHei, PingFang SC, Heiti SC, sans-serif" font-size="30" font-weight="700" fill="url(#gold)">短剧工业化编剧引擎 · <tspan fill="#ff8aa6">v4.9</tspan></text>
+  <text x="106" y="176" font-family="Microsoft YaHei, PingFang SC, Heiti SC, sans-serif" font-size="30" font-weight="700" fill="url(#gold)">短剧工业化编剧引擎 · <tspan fill="#ff8aa6">v5.1</tspan></text>
 
   <!-- 核心卖点 -->
   <text x="106" y="216" font-family="Microsoft YaHei, PingFang SC, Heiti SC, sans-serif" font-size="19" fill="#aab3c2">一句创意 / 一部网文 / 一个脑洞  →  强画面支撑 · 15秒换挡 · 大白话同轮直给</text>
